@@ -1,0 +1,1813 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Gone Fishing!</title>
+<meta name="theme-color" content="#A6DDF6">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Gone Fishing">
+<script>performance.setResourceTimingBufferSize?.(1000);   // (the offline cache stores every file this lists, and the size clips add up)</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&display=swap">
+<style>
+  /* Layout: the 3D pond cross-section fills the screen; home top-left, the sticker row top-centre, mute top-right; tackle buttons bottom-left, the big reel button bottom-right; "?" and "!" bubbles float over the bait; the catch card is an overlay */
+  :root{
+    --sky:#A6DDF6; --cream:#FFF8E7; --lip:#E6D3A8; --ink:#1F3550; --gold:#FFC93C; --gold-edge:#E59A00;
+    --go:#35C24A; --go-edge:#23912F; --stop:#FF6B5B; --stop-edge:#C94436; --reel:#3FA7E0; --reel-edge:#2479A8;
+    --title:'Fredoka','Baloo 2','Trebuchet MS',system-ui,sans-serif;
+    --st:env(safe-area-inset-top,0px); --sr:env(safe-area-inset-right,0px); --sb:env(safe-area-inset-bottom,0px); --sl:env(safe-area-inset-left,0px);
+    --btn:clamp(56px,15vw,72px); --reelsz:clamp(104px,28vw,128px);
+    color-scheme: light;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  html,body{height:100%;margin:0;overflow:hidden;background:var(--sky);font-family:var(--title);color:var(--ink);
+    touch-action:manipulation;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+  #c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+  #vig{position:fixed;inset:0;pointer-events:none;z-index:1;background:radial-gradient(ellipse 75% 70% at 50% 45%,transparent 55%,rgba(8,36,64,.28) 100%)}
+  button{font:inherit;color:inherit;border:0;padding:0;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;background:none}
+  svg{display:block}
+
+  /* ---------- home + HUD ---------- */
+  #home{position:fixed;top:calc(10px + var(--st));left:calc(10px + var(--sl));z-index:50;
+    width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:#2a2140;background:rgba(255,255,255,.85);
+    box-shadow:0 3px 0 rgba(0,0,0,.18);touch-action:manipulation;-webkit-tap-highlight-color:transparent;text-decoration:none}
+  #home svg{width:24px;height:24px}
+  #home:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.18)}
+  #mute{position:fixed;z-index:46;top:calc(10px + var(--st));right:calc(10px + var(--sr));width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.85);box-shadow:0 3px 0 rgba(0,0,0,.18)}
+  #mute svg{width:26px;height:26px}
+  #stickers{position:fixed;top:calc(12px + var(--st));left:62px;right:62px;display:flex;justify-content:center;gap:5px;z-index:20;pointer-events:none}
+  .stk{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.5);display:grid;place-items:center}
+  .stk svg{width:32px;height:32px}
+  .stk.got{background:#fff;box-shadow:0 2px 0 rgba(0,0,0,.15)}
+  .stk.pop{animation:pop .6s ease-out}
+
+  /* ---------- tackle + reel ---------- */
+  #tackle{position:fixed;left:calc(12px + var(--sl));bottom:calc(14px + var(--sb));display:flex;gap:10px;z-index:30}
+  .tk{width:var(--btn);height:var(--btn);border-radius:50%;background:var(--cream);box-shadow:0 5px 0 var(--lip);display:grid;place-items:center}
+  .tk svg{width:66%;height:66%}
+  .tk.sel{box-shadow:0 0 0 4px var(--gold-edge),0 5px 0 var(--lip);transform:translateY(-3px)}
+  .tk:disabled{opacity:.4}
+  #reel{position:fixed;right:calc(16px + var(--sr));bottom:calc(16px + var(--sb));width:var(--reelsz);height:var(--reelsz);border-radius:50%;
+    background:var(--reel);box-shadow:0 6px 0 var(--reel-edge);display:grid;place-items:center;z-index:30;touch-action:none;transition:background .15s}
+  #reel.held{transform:translateY(4px);box-shadow:0 2px 0 var(--reel-edge)}
+  #reel.rest{background:var(--go);box-shadow:0 6px 0 var(--go-edge)}
+  #reel.pull{background:var(--stop);box-shadow:0 6px 0 var(--stop-edge)}
+  #reel .wheel{width:88%;height:88%}
+  #reel .hand{font-size:calc(var(--reelsz)*.5);line-height:1;display:none}
+  #reel.pull .wheel{display:none}
+  #reel.pull .hand{display:block;animation:nudge .35s ease-in-out infinite}
+  #reel .ring{position:absolute;inset:-9px;width:calc(100% + 18px);height:calc(100% + 18px);transform:rotate(-90deg);pointer-events:none}
+  #reel .ring circle{fill:none;stroke-width:7;stroke-linecap:round}
+
+  /* ---------- bubbles + hint ---------- */
+  .bub{position:fixed;left:0;top:0;z-index:25;pointer-events:none;transform:translate(-50%,-100%)}
+  #bang{width:60px;height:60px;border-radius:50%;background:var(--stop);color:#fff;font:bold 42px/60px Verdana,Tahoma,sans-serif;text-align:center;
+    box-shadow:0 4px 0 var(--stop-edge);animation:throb .32s ease-in-out infinite alternate}
+  #q{width:40px;height:40px;border-radius:50%;background:#fff;color:var(--ink);font:bold 26px/40px Verdana,Tahoma,sans-serif;text-align:center;box-shadow:0 3px 0 rgba(0,0,0,.15)}
+  #msg{font-size:46px;line-height:1;animation:rise 1.6s ease-out forwards}
+  #hint{position:fixed;left:0;top:0;z-index:26;font-size:48px;line-height:1;pointer-events:none;animation:poke 1s ease-in-out infinite}
+
+  /* ---------- catch card ---------- */
+  #card{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:rgba(20,50,80,.35)}
+  #card .box{position:relative;background:var(--cream);border-radius:28px;padding:14px 22px 20px;box-shadow:0 8px 0 var(--lip),0 14px 30px rgba(0,0,0,.25);
+    display:flex;flex-direction:column;align-items:center;gap:6px;animation:pop .35s ease-out;max-width:calc(100vw - 24px)}
+  #fishc{width:min(78vw,360px);height:min(39vw,180px,30vh);display:block}
+  #card h2{margin:0;font-size:32px;line-height:1.1}
+  #size{font:bold 24px/1 Verdana,Tahoma,sans-serif;display:flex;align-items:center;gap:8px}
+  #size svg{width:34px;height:20px}
+  #new{position:absolute;top:-14px;right:-8px;background:var(--gold);color:#7a4b00;padding:6px 12px;border-radius:14px;font-size:20px;transform:rotate(8deg);box-shadow:0 3px 0 var(--gold-edge)}
+  #letgo{width:clamp(66px,17vh,90px);height:clamp(66px,17vh,90px);border-radius:50%;background:var(--reel);box-shadow:0 6px 0 var(--reel-edge);display:grid;place-items:center;margin-top:4px}
+  #letgo svg{width:60%;height:60%}
+  #letgo:active{transform:translateY(4px);box-shadow:0 2px 0 var(--reel-edge)}
+
+  @keyframes pop{0%{transform:scale(.6)}70%{transform:scale(1.1)}100%{transform:scale(1)}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes nudge{0%,100%{transform:none}50%{transform:scale(1.15)}}
+  @keyframes throb{to{transform:scale(1.18)}}
+  @keyframes rise{0%{opacity:0;margin-top:0}15%{opacity:1}100%{opacity:0;margin-top:-50px}}
+  #hint.drag{animation:pullback 1.6s ease-in-out infinite}
+  #hint.crank{animation:crank 1.1s linear infinite}
+  @keyframes crank{from{transform:translate(-30%,-30%) rotate(0deg) translateX(32px) rotate(0deg)}to{transform:translate(-30%,-30%) rotate(360deg) translateX(32px) rotate(-360deg)}}
+  #depth{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.75);transform:translate(-50%,0);display:grid;place-items:center;box-shadow:0 2px 0 rgba(0,0,0,.12)}
+  #depth svg{width:22px;height:22px}
+  #depth.held{background:var(--gold)}
+  @keyframes pullback{0%{transform:translate(-30%,0);opacity:0}15%{opacity:1}60%{transform:translate(calc(-30% - 70px),55px);opacity:1}80%,100%{transform:translate(calc(-30% - 70px),55px);opacity:0}}
+  @keyframes poke{0%,100%{transform:translate(-30%,0)}50%{transform:translate(-30%,-14px)}}
+</style>
+</head>
+<body>
+<a id="home" href="../index.html" aria-label="All games" title="All games"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 9.8V20h12V9.8" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/><path d="M10 20v-5.5h4V20" fill="currentColor"/></svg></a>
+<canvas id="c"></canvas>
+<div id="vig"></div>
+<div id="stickers"></div>
+<button id="mute" aria-label="Sound on or off"></button>
+<div id="tackle">
+  <button class="tk" data-t="float" aria-label="Bobber"><svg viewBox="0 0 24 24"><path d="M12 1.5v6" stroke="#333" stroke-width="2"/><circle cx="12" cy="1.8" r="1.6" fill="#FFC93C"/><path d="M5 13a7 7 0 0 1 14 0z" fill="#E8463A"/><path d="M5 13a7 7 0 0 0 14 0z" fill="#fff" stroke="#c9c9c9" stroke-width=".8"/><path d="M12 20v3.5" stroke="#333" stroke-width="1.6"/></svg></button>
+  <button class="tk" data-t="bottom" aria-label="Bell and sinker"><svg viewBox="0 0 24 24"><path d="M12 2.2c-3.6 0-5.4 2.8-5.4 6.4v3.6L4.5 15h15l-2.1-2.8V8.6c0-3.6-1.8-6.4-5.4-6.4z" fill="#FFC93C" stroke="#C98A00" stroke-width="1.2" stroke-linejoin="round"/><circle cx="12" cy="17" r="1.7" fill="#C98A00"/><path d="M12 18.5v1.5" stroke="#555" stroke-width="1.2"/><circle cx="12" cy="21.6" r="2.1" fill="#7a7f88"/></svg></button>
+  <button class="tk" data-t="lure" aria-label="Spinner lure"><svg viewBox="0 0 24 24"><path d="M3 4l6 5" stroke="#555" stroke-width="1.4"/><ellipse cx="9" cy="10" rx="3.2" ry="5.6" transform="rotate(-38 9 10)" fill="#cfd8e2" stroke="#8a97a5"/><circle cx="13" cy="13" r="1.9" fill="#E8463A"/><path d="M14.2 14.2 18 18" stroke="#555" stroke-width="2.2" stroke-linecap="round"/><path d="M18 18c0 3 3.5 3 3.5 0" fill="none" stroke="#555" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+</div>
+<button id="reel" aria-label="Reel in" hidden>
+  <svg class="ring" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" stroke="rgba(255,255,255,.35)"/><circle id="tension" cx="50" cy="50" r="46" stroke="#fff" stroke-dasharray="289" stroke-dashoffset="289"/></svg>
+  <svg class="wheel" viewBox="0 0 100 100"><circle cx="50" cy="50" r="36" fill="#fff" fill-opacity=".2" stroke="#fff" stroke-width="4" stroke-dasharray="3 7"/><circle cx="50" cy="50" r="8" fill="#fff"/><g id="crank"><path d="M50 50V20" stroke="#fff" stroke-width="9" stroke-linecap="round"/><circle cx="50" cy="17" r="13" fill="#FFC93C" stroke="#fff" stroke-width="4"/></g></svg>
+  <span class="hand">✋</span>
+</button>
+<div id="q" class="bub" hidden>?</div>
+<div id="bang" class="bub" hidden>!</div>
+<div id="msg" class="bub" hidden></div>
+<div id="hint" hidden>👆</div>
+<div id="depth" class="bub" hidden><svg viewBox="0 0 24 24"><path d="M12 3l-4 5h8zM12 21l-4-5h8z" fill="#1F3550"/></svg></div>
+<div id="card" hidden>
+  <div class="box">
+    <div id="new" hidden>NEW!</div>
+    <canvas id="fishc"></canvas>
+    <h2 id="cardName">Perch</h2>
+    <div id="size"><svg viewBox="0 0 34 20"><rect x="1" y="4" width="32" height="12" rx="2" fill="#FFC93C" stroke="#C98A00"/><path d="M5 4v5M9 4v3M13 4v5M17 4v3M21 4v5M25 4v3M29 4v5" stroke="#7a4b00" stroke-width="1.2"/></svg><span id="cm">23 cm</span></div>
+    <button id="letgo" aria-label="Let it go"><svg viewBox="0 0 24 24"><path d="M3 9c3-4 9-4 12 0-3 4-9 4-12 0zm12 0 4-3v6z" fill="#fff"/><circle cx="6" cy="8.4" r=".9" fill="#2479A8"/><path d="M2 17c2-1.6 4-1.6 6 0s4 1.6 6 0 4-1.6 6 0" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/><path d="M2 21c2-1.6 4-1.6 6 0s4 1.6 6 0 4-1.6 6 0" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".6"/></svg></button>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+
+/* ======== tuning knobs ======== */
+const STRIKE_WINDOW = 1.8;     // seconds to tap after the bobber goes under or the bell rings
+const NOTICE_EVERY = 0.5;      // how often a wandering fish looks around for bait (s)
+const SENSE = { float: 3.4, bottom: 4.2, lure: 4.2 };   // how far away a fish notices each bait
+const REEL_SPEED = 2.3;        // a resting fish comes in this fast while you reel
+const RETRIEVE_SPEED = 3.0;    // an empty bobber or sinker comes in this fast
+const LURE_SPEED = 2.3;        // a lure swims back this fast while you reel
+const LURE_SINK = 0.8;         // a lure sinks this fast while you don't
+const TENSION_UP = 0.6;        // line tension per second when you reel while a fish pulls (1 = it gets away)
+const TENSION_DOWN = 0.25;     // ...and how fast it eases off while you reel a resting fish (faster when you don't)
+const ESCAPE_COOL = 8;         // a fish that got away ignores bait this long (s)
+const SNAP_SPIT = 2.2;         // after the line snaps, the fish swims off this long before it shakes the hook out (s)
+const CRANK_FULL = 7;          // winding the reel this fast (radians a second, about a turn a second) reels at full speed
+const HINT_AFTER = 4;
+const VIEW_W = 19;             // how much of the pond fits across a landscape screen (world units; the jetty end to the far bank is ~16)          // idle seconds before the pointing hand shows where to tap
+const CAST_X = [-5.2, 9.0];    // where a throw can land (world x; the jetty end is at -6, the far reeds at 9.5)
+const THROW_SPEED = 15;        // launch speed of a full-strength throw (world units per second)
+const GRAVITY = 14;            // how fast a thrown bait falls
+const SLING_REACH = 0.2;       // how far the bait can be pulled out of the slingshot (share of the screen's short side): a full-strength throw
+const GRAB_PX = 75;            // how near the bait (on screen) a finger has to land to grab it
+const BOOT_REACH = 2.2;        // a sinker this near the old boot (world x) snags it; a bobber's worm near the bottom, a bit less
+const PULL_MIN = 0.12;         // a pull shorter than this share of a full one is called off
+const WORM_BITE = 0.3;         // how much of the worm each nibble eats (1 = a whole worm)
+const FLOAT_DEPTH = -1.6;      // where the worm hangs under a new bobber (drag the worm to change it)
+
+// band: [top, bottom] of the water the fish likes (y, the surface is 0); bottom: hugs the lake bed instead.
+// likes: how keen it is on each bait (0..1); nibbles: [min, max] nibbles before the real bite; fight: how hard it pulls.
+const SPECIES = {
+  roach:   { name: 'Roach', len: 0.75, h: 0.32, w: 0.14, cm: [12, 25], band: [-0.8, -3.0], speed: 0.9, likes: { float: 1, bottom: 0.35 }, nibbles: [1, 3], fight: 0.5,
+             back: 0x4f6b80, side: 0xc4d3de, belly: 0xf4f6f8, fin: 0xe0533f },
+  perch:   { name: 'Perch', len: 0.85, h: 0.38, w: 0.16, cm: [15, 35], band: [-1.2, -4.0], speed: 1.0, chase: 3.0, likes: { float: 0.8, lure: 0.9 }, nibbles: [0, 2], fight: 0.8,
+             back: 0x34511f, side: 0x9fb85a, belly: 0xefe6b4, fin: 0xf07b2a, stripes: true, spiky: true },
+  carp:    { name: 'Carp', len: 1.35, h: 0.6, w: 0.32, cm: [35, 70], bottom: true, speed: 0.55, likes: { bottom: 1, float: 0.3 }, nibbles: [1, 3], fight: 1.3,
+             back: 0x6b4a1c, side: 0xd29a2c, belly: 0xf2d68c, fin: 0xa8652a, barbels: true, snout: 0.35 },
+  pike:    { name: 'Pike', len: 1.9, h: 0.4, w: 0.22, cm: [50, 95], band: [-0.9, -4.0], speed: 0.8, chase: 3.5, likes: { lure: 1 }, fight: 1.6,
+             back: 0x2d4a22, side: 0x6f913a, belly: 0xe8eac8, fin: 0x8d9a3a, spots: true, taper: 0.45, snout: 0.05, dorsalX: -0.55, dorsalLen: 0.18 },
+  catfish: { name: 'Catfish', len: 1.6, h: 0.42, w: 0.34, cm: [45, 90], bottom: true, speed: 0.45, likes: { bottom: 1 }, nibbles: [0, 2], fight: 1.4,
+             back: 0x2c2c36, side: 0x5f5866, belly: 0xcfc6b8, fin: 0x3a3642, whiskers: true, flatHead: true, roundTail: true, taper: 0.5, dorsalX: 0.2, dorsalLen: 0.12 },
+  boot:    { name: 'Old boot', junk: true, len: 0.62, h: 0.5, cm: [24, 30], bottom: true, likes: { bottom: 1 }, nibbles: [0, 0], fight: 0 },
+};
+const ORDER = ['roach', 'perch', 'carp', 'pike', 'catfish', 'boot'];
+const POND = ['roach', 'roach', 'roach', 'perch', 'perch', 'carp', 'carp', 'pike', 'catfish', 'boot'];
+const BOOT_X = 3.6;
+
+/* ======== helpers ======== */
+const V3 = THREE.Vector3;
+const rand = (a, b) => a + Math.random() * (b - a);
+const randInt = (a, b) => Math.floor(rand(a, b + 1));
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const damp = (a, b, k, dt) => lerp(a, b, 1 - Math.exp(-k * dt));
+const ease = (u) => u * u * (3 - 2 * u);
+const params = new URLSearchParams(location.search);
+const FORCE_MUTE = params.has('mute') || params.has('tbxtest') || navigator.webdriver === true;   // test runs stay silent
+const NS = 'gonefishing.';
+function load(k, d) { try { const v = localStorage.getItem(NS + k); return v == null ? d : JSON.parse(v); } catch { return d; } }
+function save(k, v) { try { localStorage.setItem(NS + k, JSON.stringify(v)); } catch {} }
+const $ = (id) => document.getElementById(id);
+
+/* ======== the lake bed ======== */
+// One profile, extruded back into the scene: the cut face at the front is the cross-section.
+const BED_KNOTS = [[-16, 1.3], [-10, 1.15], [-8.4, 0.8], [-7.3, -0.6], [-5.4, -2.8], [-3, -4.5], [0, -5.5], [3, -5.8], [5.6, -4.7], [7.6, -2.5], [9.2, -0.5], [10.4, 0.75], [12, 1.1], [16, 1.3]];
+const BED = new THREE.SplineCurve(BED_KNOTS.map(([x, y]) => new THREE.Vector2(x, y))).getSpacedPoints(900);
+function bedY(x) {
+  let lo = 0, hi = BED.length - 1;
+  if (x <= BED[0].x) return BED[0].y;
+  if (x >= BED[hi].x) return BED[hi].y;
+  while (hi - lo > 1) { const m = (lo + hi) >> 1; if (BED[m].x <= x) lo = m; else hi = m; }
+  const a = BED[lo], b = BED[hi];
+  return a.y + (b.y - a.y) * (x - a.x) / ((b.x - a.x) || 1);
+}
+const wave = (x, t) => 0.05 * Math.sin(x * 1.3 + t * 1.6) + 0.03 * Math.sin(x * 2.7 - t * 2.1);
+const JETTY_END = -6.0, DECK_Y = 1.0;
+const LAND = new V3(-5.5, -0.4, 0);   // where a reeled-in fish is lifted out
+const SLING = new V3(-6.25, DECK_Y + 1.25, 0);   // the slingshot's pouch: the bait sits here, ready to throw
+const SLING_BACK = new V3(SLING.x - 0.32, SLING.y + 0.2, -0.15), SLING_FRONT = new V3(SLING.x + 0.26, SLING.y + 0.17, 0.15);   // prong tips
+
+/* ======== renderer, scene, camera ======== */
+const canvas = $('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.25;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0xd8f0ff, 45, 135);   // haze on the far hills
+{
+  const g = document.createElement('canvas'); g.width = 2; g.height = 256;
+  const x = g.getContext('2d'), grad = x.createLinearGradient(0, 0, 0, 256);
+  grad.addColorStop(0, '#3E9FE6'); grad.addColorStop(0.45, '#8ECFF5'); grad.addColorStop(0.8, '#D2EEFC'); grad.addColorStop(1, '#FFF4DE');
+  x.fillStyle = grad; x.fillRect(0, 0, 2, 256);
+  const tex = new THREE.CanvasTexture(g); tex.colorSpace = THREE.SRGBColorSpace;
+  scene.background = tex;
+}
+const FOV = 30;
+const camera = new THREE.PerspectiveCamera(FOV, 1, 0.5, 200);
+scene.add(new THREE.HemisphereLight(0xdff2ff, 0x7a9a5a, 1.6));
+const sunLight = new THREE.DirectionalLight(0xfff0d4, 2.6); sunLight.position.set(8, 14, 10); scene.add(sunLight);
+sunLight.castShadow = true;
+sunLight.shadow.mapSize.set(1024, 1024);
+Object.assign(sunLight.shadow.camera, { left: -16, right: 16, top: 12, bottom: -10, near: 1, far: 60 });
+sunLight.shadow.bias = -0.0006; sunLight.shadow.normalBias = 0.03; sunLight.shadow.radius = 3;
+
+const view = { w: 20, h: 12, cy: -1.4, dist: 30, cx: -2, zoom: 1 };
+function fit() {
+  const w = innerWidth, h = innerHeight, a = w / h;
+  if (!w || !h) return;   // a hidden or collapsed window: keep the last good view
+  renderer.setSize(w, h, false);
+  camera.aspect = a;
+  const wantW = a >= 1 ? VIEW_W : clamp(9.5 + (a - 0.5) * 18, 9.5, VIEW_W);
+  view.h = Math.max(11.5, wantW / a);
+  view.w = view.h * a;
+  view.cy = -1.4 + Math.max(0, view.h - 12) * 0.24;
+  view.dist = view.h / 2 / Math.tan(THREE.MathUtils.degToRad(FOV / 2));
+  camera.updateProjectionMatrix();
+}
+addEventListener('resize', fit); fit();
+
+/* ======== scenery ======== */
+const lam = (color, o = {}) => new THREE.MeshLambertMaterial({ color, ...o });
+function addMesh(geo, mat, x = 0, y = 0, z = 0, parent = scene) { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); parent.add(m); return m; }
+
+// Soil strata: bands that follow the bed, extruded from z=-14 to the cut face at z=1.5.
+const FRONT_Z = 1.5;
+{
+  const xs = []; for (let x = -16; x <= 16.001; x += 0.2) xs.push(x);
+  const bands = [[0, 0.18], [0.18, 0.9], [0.9, 2.2], [2.2, null]];
+  const cols = [null, new THREE.Color(0x9a6a3c), new THREE.Color(0x7c5331), new THREE.Color(0x5d4c47)];
+  const grass = new THREE.Color(0x78c24e), sand = new THREE.Color(0xcdb17a);
+  // speckles and faint layering, multiplied over the band colours (the cut face's uv is world x, y)
+  const tc = document.createElement('canvas'); tc.width = tc.height = 256;
+  const cx = tc.getContext('2d'); cx.fillStyle = '#e8e8e8'; cx.fillRect(0, 0, 256, 256);
+  for (let k = 0; k < 14; k++) { cx.fillStyle = `rgba(${k % 2 ? 255 : 120},${k % 2 ? 255 : 110},${k % 2 ? 255 : 100},0.10)`; cx.fillRect(0, rand(0, 256), 256, rand(2, 10)); }
+  for (let k = 0; k < 900; k++) {
+    const l = Math.random() < 0.5 ? 255 : 90; cx.fillStyle = `rgba(${l},${l},${l},${rand(0.08, 0.3)})`;
+    cx.beginPath(); cx.arc(rand(0, 256), rand(0, 256), rand(0.6, 2.6), 0, 7); cx.fill();
+  }
+  const soilTex = new THREE.CanvasTexture(tc); soilTex.wrapS = soilTex.wrapT = THREE.RepeatWrapping; soilTex.repeat.set(0.4, 0.4); soilTex.colorSpace = THREE.SRGBColorSpace;
+  const mat = lam(0xffffff, { vertexColors: true, map: soilTex });
+  bands.forEach(([a, b], i) => {
+    const s = new THREE.Shape();
+    s.moveTo(xs[0], bedY(xs[0]) - a);
+    for (const x of xs.slice(1)) s.lineTo(x, bedY(x) - a);
+    for (const x of xs.slice().reverse()) s.lineTo(x, b == null ? -16 : bedY(x) - b);
+    const geo = new THREE.ExtrudeGeometry(s, { depth: FRONT_Z + 14, bevelEnabled: false });
+    geo.translate(0, 0, -14);
+    const p = geo.attributes.position, col = new Float32Array(p.count * 3);
+    for (let k = 0; k < p.count; k++) {
+      const c = i === 0 ? (p.getY(k) > 0.02 ? grass : sand) : cols[i];
+      col[k * 3] = c.r; col[k * 3 + 1] = c.g; col[k * 3 + 2] = c.b;
+    }
+    geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    addMesh(geo, mat);
+  });
+  // pebbles poking out of the cut face
+  const peb = new THREE.DodecahedronGeometry(1, 0);
+  for (let k = 0; k < 34; k++) {
+    const x = rand(-15, 15), y = bedY(x) - rand(1.0, 6), r = rand(0.1, 0.28);
+    const m = addMesh(peb, lam([0x8d8580, 0x6f6863, 0xa39a8f][k % 3], { flatShading: true }), x, y, FRONT_Z - r * 0.3);
+    m.scale.set(r * 1.3, r, r); m.rotation.set(rand(0, 3), rand(0, 3), 0);
+  }
+  // rocks on the lake bed
+  for (const [x, z, r] of [[-2.2, -1.8, 0.35], [1.4, 0.6, 0.28], [5.0, -2.5, 0.45], [6.4, 0.9, 0.22], [-4.1, -0.4, 0.25]]) {
+    const m = addMesh(peb, lam(0x8a8f96, { flatShading: true }), x, bedY(x) + r * 0.4, z);
+    m.scale.set(r * 1.4, r, r * 1.2); m.rotation.y = rand(0, 3);
+  }
+  // the far shore
+  addMesh(new THREE.BoxGeometry(160, 2, 60), lam(0x84c75a), 0, -0.1, -44);
+  for (let k = 0; k < 7; k++) {
+    const m = addMesh(new THREE.SphereGeometry(1, 16, 10), lam([0x7bbf55, 0x6aae4c, 0x8fcf66][k % 3]), -36 + k * 12 + rand(-3, 3), 0.4, -30 - rand(0, 12));
+    m.scale.set(rand(8, 14), rand(2.5, 5), 6);
+  }
+}
+
+// Water: a tinted front pane (the glass of the cut), a back wall, and the wavy surface.
+const water = {};
+{
+  const top = new THREE.Color(0x7fd0f2), mid = new THREE.Color(0x2f86c0), deep = new THREE.Color(0x123f6e);
+  const c = new THREE.Color();
+  const g = new THREE.PlaneGeometry(32, 14.2, 1, 1); g.translate(0, -6.9, 0);
+  water.front = addMesh(g, new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false,
+    uniforms: { uTime: { value: 0 }, uTop: { value: top }, uMid: { value: mid }, uDeep: { value: deep } },
+    vertexShader: `varying vec2 vP;
+      void main() { vec4 w = modelMatrix * vec4(position, 1.0); vP = w.xy; gl_Position = projectionMatrix * viewMatrix * w; }`,
+    fragmentShader: `uniform float uTime; uniform vec3 uTop, uMid, uDeep; varying vec2 vP;
+      float wave(float x, float t) { return 0.05 * sin(x * 1.3 + t * 1.6) + 0.03 * sin(x * 2.7 - t * 2.1); }
+      // three bent wave trains; bright thin lines where they cancel out, like sunlight through ripples
+      float caustic(vec2 p, float t) {
+        float a = sin(p.x * 2.1 + sin(p.y * 1.7 + t * 0.8) * 1.4 + t * 0.6);
+        float b = sin(p.y * 2.6 + sin(p.x * 1.3 - t * 0.7) * 1.6 - t * 0.5);
+        float c = sin((p.x + p.y) * 1.8 + sin(p.x * 0.9 + t) * 1.2 + t * 0.4);
+        return pow(1.0 - abs((a + b + c) / 3.0), 10.0);
+      }
+      void main() {
+        float below = wave(vP.x, uTime) - vP.y;
+        if (below < 0.0) discard;
+        float d = clamp(below / 7.0, 0.0, 1.0);
+        vec3 col = d < 0.5 ? mix(uTop, uMid, d * 2.0) : mix(uMid, uDeep, (d - 0.5) * 2.0);
+        float a = 0.14 + 0.56 * d;
+        float k = caustic(vP * 1.7, uTime * 0.8) * (1.0 - smoothstep(0.0, 5.0, below)) * 0.45;
+        col += vec3(0.85, 1.0, 1.0) * k; a += k * 0.3;
+        float line = 1.0 - smoothstep(0.0, 0.06, below);
+        col = mix(col, vec3(1.0), line * 0.9); a = mix(a, 0.95, line);
+        gl_FragColor = vec4(col, a);
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }`,
+  }), 0, 0, FRONT_Z - 0.01);
+  water.front.renderOrder = 10;
+
+  const b = new THREE.PlaneGeometry(32, 14, 1, 8); b.translate(0, -7.05, 0);
+  const bp = b.attributes.position, bc = new Float32Array(bp.count * 3);
+  for (let k = 0; k < bp.count; k++) { c.copy(mid).lerp(deep, clamp(-bp.getY(k) / 6, 0, 1)).multiplyScalar(0.85); bc.set([c.r, c.g, c.b], k * 3); }
+  b.setAttribute('color', new THREE.BufferAttribute(bc, 3));
+  addMesh(b, new THREE.MeshBasicMaterial({ vertexColors: true }), 0, 0, -4);
+
+  const s = new THREE.PlaneGeometry(32, 15.5, 96, 1); s.rotateX(-Math.PI / 2); s.translate(0, 0, FRONT_Z - 7.75);
+  water.surf = addMesh(s, new THREE.MeshPhongMaterial({ color: 0x62c4ec, shininess: 120, specular: 0xd8eeff, transparent: true, opacity: 0.85 }));
+  water.surf.renderOrder = 9;
+
+  // light shafts under the surface
+  water.shafts = [];
+  for (const [x, rz] of [[-3.5, 0.22], [0.5, 0.18], [4.2, 0.26], [7.0, 0.2]]) {
+    const sg = new THREE.PlaneGeometry(1.1, 6, 1, 1); sg.translate(0, -3, 0);
+    const sp = sg.attributes.position, sc = new Float32Array(sp.count * 4);
+    for (let k = 0; k < sp.count; k++) sc.set([1, 1, 0.85, sp.getY(k) > -1 ? 0.16 : 0], k * 4);
+    sg.setAttribute('color', new THREE.BufferAttribute(sc, 4));
+    const m = addMesh(sg, new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }), x, 0, 0.9);
+    m.rotation.z = rz; m.renderOrder = 8; m.userData.ph = rand(0, 6);
+    water.shafts.push(m);
+  }
+}
+function updateWater(T) {
+  const p = water.surf.geometry.attributes.position;
+  for (let k = 0; k < p.count; k++) p.setY(k, wave(p.getX(k), T));
+  p.needsUpdate = true;
+  water.front.material.uniforms.uTime.value = T;
+  water.surf.geometry.computeVertexNormals();
+  for (const m of water.shafts) m.material.opacity = 0.6 + 0.4 * Math.sin(T * 0.7 + m.userData.ph);
+}
+
+// Weeds that sway, lily pads, reeds.
+const weeds = [];
+{
+  const mats = [lam(0x3f8f3a, { side: THREE.DoubleSide }), lam(0x5aa843, { side: THREE.DoubleSide }), lam(0x2f7445, { side: THREE.DoubleSide })];
+  for (let k = 0; k < 18; k++) {
+    let x; do { x = rand(-5.5, 8.6); } while (bedY(x) > -1.6);
+    const hgt = Math.min(rand(0.8, 2.4), -bedY(x) - 0.6);
+    const g = new THREE.PlaneGeometry(rand(0.12, 0.22), hgt, 1, 8); g.translate(0, hgt / 2, 0);
+    const m = addMesh(g, mats[k % 3], x, bedY(x) - 0.05, rand(-3, 1.1));
+    m.userData = { base: Float32Array.from(g.attributes.position.array), hgt, ph: rand(0, 6) };
+    weeds.push(m);
+  }
+}
+function updateWeeds(T) {
+  for (const m of weeds) {
+    const p = m.geometry.attributes.position, { base, hgt, ph } = m.userData;
+    for (let k = 0; k < p.count; k++) {
+      const u = base[k * 3 + 1] / hgt;
+      p.setX(k, base[k * 3] + Math.sin(T * 1.1 + ph + u * 2.2) * 0.22 * u * u);
+    }
+    p.needsUpdate = true;
+  }
+}
+const pads = [];
+{
+  const g = new THREE.CircleGeometry(0.45, 20, 0.35, Math.PI * 2 - 0.7); g.rotateX(-Math.PI / 2);
+  const mat = lam(0x4fa83c, { side: THREE.DoubleSide });
+  for (const [x, z, s] of [[6.6, -1.2, 1], [7.7, 0.5, 0.8], [-4.4, -2.2, 0.9], [3.2, -6, 1.2], [-1, -10, 1.3], [8.4, -3.5, 1]]) {
+    const m = addMesh(g, mat, x, 0.02, z); m.scale.setScalar(s); m.rotation.y = rand(0, 6); pads.push(m);
+  }
+  const fl = new THREE.Group(); const petal = new THREE.ConeGeometry(0.08, 0.26, 5);
+  for (let k = 0; k < 6; k++) { const m = addMesh(petal, lam(0xff9ccf), Math.cos(k) * 0.07, 0.08, Math.sin(k) * 0.07, fl); m.rotation.set(Math.sin(k) * 0.6, 0, -Math.cos(k) * 0.6); }
+  addMesh(new THREE.SphereGeometry(0.06, 8, 6), lam(0xffd84a), 0, 0.12, 0, fl);
+  pads[0].add(fl);
+}
+{
+  const stem = new THREE.CylinderGeometry(0.025, 0.035, 1, 5), head = new THREE.CapsuleGeometry(0.06, 0.22, 3, 6);
+  const sm = lam(0x6c9a3c), hm = lam(0x7a4a26);
+  const reed = (x, z, h) => {
+    const g = new THREE.Group(); g.position.set(x, bedY(x) - 0.05, z); g.rotation.z = rand(-0.12, 0.12); scene.add(g);
+    const s = addMesh(stem, sm, 0, h / 2, 0, g); s.scale.y = h;
+    if (Math.random() < 0.6) addMesh(head, hm, 0, h - 0.1, 0, g);
+  };
+  for (let k = 0; k < 14; k++) reed(rand(-8.3, -7.1), rand(-4, 1.2), rand(1.4, 2.4));
+  for (let k = 0; k < 14; k++) reed(rand(9.0, 10.3), rand(-4, 1.2), rand(1.2, 2.2));
+}
+
+// Little things on the banks and in the soil.
+{
+  const tuft = new THREE.ConeGeometry(0.05, 0.35, 4), stem = new THREE.CylinderGeometry(0.012, 0.012, 1, 4), bead = new THREE.SphereGeometry(0.05, 6, 4);
+  const greens = [lam(0x5fb047, { flatShading: true }), lam(0x7cc456, { flatShading: true }), lam(0x4a9a3c, { flatShading: true })];
+  const bloom = [lam(0xffffff), lam(0xffd84a), lam(0xff8fb8), lam(0xb08cff)];
+  const onBank = () => { let x; do { x = rand(-15, 15); } while (bedY(x) < 0.2 || (x > -9.6 && x < -5.8)); return x; };   // dry land, not under the jetty
+  for (let k = 0; k < 80; k++) {
+    const x = onBank(), g = new THREE.Group(); g.position.set(x, bedY(x) - 0.02, rand(-10, 1.4)); g.rotation.y = rand(0, 6); scene.add(g);
+    for (let j = 0; j < 3; j++) { const m = addMesh(tuft, greens[(k + j) % 3], rand(-0.07, 0.07), 0.15, rand(-0.07, 0.07), g); m.rotation.set(rand(-0.4, 0.4), 0, rand(-0.4, 0.4)); m.scale.y = rand(0.7, 1.4); }
+  }
+  for (let k = 0; k < 30; k++) {
+    const x = onBank(), h = rand(0.25, 0.5), g = new THREE.Group(); g.position.set(x, bedY(x), rand(-9, 1.3)); scene.add(g);
+    addMesh(stem, greens[2], 0, h / 2, 0, g).scale.y = h;
+    for (let j = 0; j < 5; j++) addMesh(bead, bloom[k % 4], Math.cos(j * 1.256) * 0.06, h, Math.sin(j * 1.256) * 0.06, g).scale.set(1, 0.5, 1);
+    addMesh(bead, bloom[k % 4 === 1 ? 0 : 1], 0, h + 0.02, 0, g).scale.setScalar(0.6);
+  }
+  for (const [x, z] of [[-12, -1.5], [11.6, -0.8], [-13.2, 0.6]]) {   // toadstools
+    const g = new THREE.Group(); g.position.set(x, bedY(x), z); scene.add(g);
+    addMesh(new THREE.CylinderGeometry(0.05, 0.07, 0.2, 8), lam(0xf4ecd8), 0, 0.1, 0, g);
+    addMesh(new THREE.SphereGeometry(0.16, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2), lam(0xe84a3a), 0, 0.18, 0, g);
+    for (let j = 0; j < 4; j++) addMesh(bead, bloom[0], Math.cos(j * 1.6) * 0.09, 0.3, Math.sin(j * 1.6) * 0.09, g).scale.setScalar(0.35);
+  }
+  // on the cut face: roots under the grass, an earthworm, a fossil fish and a fossil shell
+  const rootMat = lam(0xd8ab72), bone = lam(0xf3e8cc);
+  const tube = (pts, r, m) => addMesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 24, r, 5), m);
+  for (const x of [-14.2, -12.6, -12.1, -10.7, 11.2, 12.3, 13.5]) {
+    const pts = []; let px = x, py = bedY(x) - 0.1;
+    const len = rand(0.9, 1.7);
+    for (let j = 0; j < 6; j++) { pts.push(new V3(px, py, FRONT_Z)); px += rand(-0.25, 0.25); py -= len / 5; }
+    tube(pts, 0.035, rootMat);
+    tube([pts[2].clone(), pts[2].clone().add(new V3(rand(0.25, 0.4) * (Math.random() < 0.5 ? 1 : -1), -0.3, 0)), pts[2].clone().add(new V3(rand(-0.5, 0.5), -0.6, 0))], 0.02, rootMat);
+  }
+  for (const [x0, dy] of [[-11.4, 0.6], [12.4, 0.75]]) {
+    const pts = []; for (let j = 0; j < 8; j++) pts.push(new V3(x0 + j * 0.09, bedY(x0) - dy + Math.sin(j * 1.3) * 0.05, FRONT_Z));
+    tube(pts, 0.035, lam(0xef8f9a));
+  }
+  const fossil = new THREE.Group(); fossil.position.set(-11.6, bedY(-11.6) - 3.0, FRONT_Z); fossil.rotation.z = 0.15; scene.add(fossil);
+  addMesh(new THREE.BoxGeometry(0.9, 0.035, 0.04), bone, 0, 0, 0, fossil);
+  for (let j = 0; j < 6; j++) for (const s of [1, -1]) {
+    const r = addMesh(new THREE.BoxGeometry(0.025, 0.22 - Math.abs(j - 2) * 0.025, 0.04), bone, -0.25 + j * 0.1, s * 0.1, 0, fossil); r.rotation.z = s * 0.3;
+  }
+  addMesh(new THREE.TorusGeometry(0.11, 0.025, 4, 14), bone, 0.52, 0, 0, fossil);
+  addMesh(new THREE.SphereGeometry(0.03, 6, 4), bone, 0.55, 0.03, 0, fossil);
+  for (const s of [1, -1]) addMesh(new THREE.BoxGeometry(0.22, 0.03, 0.04), bone, -0.53, s * 0.06, 0, fossil).rotation.z = s * 0.5;
+  const spiral = []; for (let a = 0; a < Math.PI * 4.2; a += 0.25) spiral.push(new V3(Math.cos(a) * (0.02 + a * 0.022), Math.sin(a) * (0.02 + a * 0.022), 0));
+  const shell = addMesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(spiral), 60, 0.025, 5), bone, 12.3, bedY(12.3) - 2.9, FRONT_Z);
+  shell.rotation.z = 0.6;
+}
+// A bucket and a tackle box on the jetty.
+{
+  const b = new THREE.Group(); b.position.set(-8.55, DECK_Y, -0.5); scene.add(b);
+  addMesh(new THREE.CylinderGeometry(0.2, 0.15, 0.34, 16, 1, true), lam(0x3f8fd8, { side: THREE.DoubleSide }), 0, 0.17, 0, b);
+  addMesh(new THREE.CircleGeometry(0.15, 16).rotateX(-Math.PI / 2), lam(0x2f6fb0), 0, 0.01, 0, b);
+  addMesh(new THREE.TorusGeometry(0.19, 0.012, 4, 16, Math.PI), lam(0x8a97a5), 0, 0.33, 0, b).rotation.z = 0.25;
+  const box = new THREE.Group(); box.position.set(-9.05, DECK_Y, 0.4); box.rotation.y = 0.3; scene.add(box);
+  addMesh(new THREE.BoxGeometry(0.5, 0.22, 0.3), lam(0x2e9d5b), 0, 0.11, 0, box);
+  addMesh(new THREE.BoxGeometry(0.52, 0.05, 0.32), lam(0x247a47), 0, 0.235, 0, box);
+  addMesh(new THREE.BoxGeometry(0.16, 0.04, 0.04), lam(0xffc93c), 0, 0.28, 0, box);
+}
+// Life around the pond: a duck family, a frog on a lily pad, a dragonfly.
+const life = { ducks: [], frog: null, fly: null };
+{
+  const duck = (s, body, head) => {
+    const g = new THREE.Group(); g.scale.setScalar(s); scene.add(g);
+    addMesh(new THREE.SphereGeometry(0.3, 14, 10), lam(body), 0, 0.12, 0, g).scale.set(1.25, 0.75, 0.85);
+    addMesh(new THREE.ConeGeometry(0.1, 0.25, 6), lam(body), -0.38, 0.22, 0, g).rotation.z = 1.9;
+    addMesh(new THREE.SphereGeometry(0.16, 12, 10), lam(head), 0.25, 0.42, 0, g);
+    addMesh(new THREE.ConeGeometry(0.06, 0.2, 6), lam(0xff9a2e), 0.44, 0.4, 0, g).rotation.z = -Math.PI / 2;
+    for (const z of [0.1, -0.1]) addMesh(new THREE.SphereGeometry(0.03, 6, 4), lam(0x111111), 0.33, 0.47, z, g);
+    return g;
+  };
+  [[1, 0xb8a58a, 0x2f8a4a], [0.55, 0xffd84a, 0xffd84a], [0.55, 0xffd84a, 0xffd84a]].forEach(([s, b, h], k) => {
+    life.ducks.push({ g: duck(s, b, h), lag: k * 0.9 });
+  });
+  const frog = new THREE.Group(); pads[1].add(frog); frog.rotation.y = -pads[1].rotation.y; frog.scale.setScalar(1 / pads[1].scale.x);
+  const fg = lam(0x58b947), eyeW = lam(0xffffff);
+  addMesh(new THREE.SphereGeometry(0.17, 12, 10), fg, 0, 0.1, 0, frog).scale.set(1.2, 0.75, 1);
+  frog.throat = addMesh(new THREE.SphereGeometry(0.08, 10, 8), lam(0xd8f0a8), 0.13, 0.05, 0, frog);
+  for (const z of [0.08, -0.08]) {
+    addMesh(new THREE.SphereGeometry(0.06, 10, 8), fg, 0.08, 0.2, z, frog);
+    addMesh(new THREE.SphereGeometry(0.04, 8, 6), eyeW, 0.11, 0.22, z * 1.15, frog);
+    addMesh(new THREE.SphereGeometry(0.022, 6, 4), lam(0x111111), 0.135, 0.225, z * 1.3, frog);
+  }
+  life.frog = frog;
+  const fly = new THREE.Group(); scene.add(fly);
+  addMesh(new THREE.CapsuleGeometry(0.025, 0.4, 3, 6), lam(0x2a7fd8), 0, 0, 0, fly).rotation.z = Math.PI / 2;
+  addMesh(new THREE.SphereGeometry(0.045, 8, 6), lam(0x1d5fa8), 0.23, 0, 0, fly);
+  const wm = new THREE.MeshBasicMaterial({ color: 0xe8f6ff, transparent: true, opacity: 0.55, side: THREE.DoubleSide });
+  fly.wings = [];
+  for (const [x, s] of [[0.06, 1], [0.06, -1], [-0.04, 1], [-0.04, -1]]) {
+    const w = new THREE.Group(); w.position.set(x, 0.02, 0); fly.add(w);
+    const m = addMesh(new THREE.PlaneGeometry(0.07, 0.3).translate(0, 0, 0).rotateX(Math.PI / 2), wm, 0, 0, s * 0.15, w);
+    m.userData.noShadow = true; fly.wings.push({ w, s });
+  }
+  life.fly = fly;
+}
+function updateLife(T) {
+  // the ducks paddle along the far water, the little ones following
+  for (const d of life.ducks) {
+    const t = T * 0.12 - d.lag * 0.12, x = Math.sin(t) * 6 + 2, dir = Math.cos(t) >= 0 ? 1 : -1;
+    d.g.position.set(x, wave(x, T) - 0.02, -6.5 + d.lag * 0.25);
+    d.g.rotation.y = damp(d.g.rotation.y, dir > 0 ? 0 : Math.PI, 3, 1 / 60);
+    d.g.rotation.z = Math.sin(T * 2 + d.lag) * 0.05;
+  }
+  const f = life.frog, blink = (T % 4.3) < 0.12;
+  f.throat.scale.setScalar(1 + Math.max(0, Math.sin(T * 3)) * 0.6 * ((T % 7) < 2.5 ? 1 : 0));
+  f.children.forEach((c, k) => { if (k >= 2 && (k - 2) % 3 !== 0) c.visible = !blink; });
+  // the dragonfly darts between hovering spots over the water
+  const fl = life.fly, seg = Math.floor(T / 2.6), u = clamp((T % 2.6) / 0.6, 0, 1);
+  const spot = (n) => new V3(Math.sin(n * 12.9898) * 6 + 2, 0.7 + Math.abs(Math.sin(n * 7.13)) * 1.4, 0.4 + Math.sin(n * 3.7) * 0.6);
+  const a = spot(seg), b = spot(seg + 1);
+  fl.position.lerpVectors(a, b, ease(u)).add(_hov.set(0, Math.sin(T * 9) * 0.03, 0));
+  fl.rotation.y = b.x >= a.x ? 0 : Math.PI;
+  fl.wings.forEach(({ w, s }, k) => { w.rotation.x = s * Math.sin(T * 60 + k) * 0.6; });
+}
+const _hov = new V3();
+
+// Trees, sun, clouds.
+const clouds = [];
+{
+  const trunk = new THREE.CylinderGeometry(0.12, 0.18, 1, 6), blob = new THREE.IcosahedronGeometry(1, 0), cone = new THREE.ConeGeometry(1, 2.4, 7);
+  const tm = lam(0x7a5434), leaves = [lam(0x4f9d3a, { flatShading: true }), lam(0x5fb047, { flatShading: true }), lam(0x3d8a3a, { flatShading: true })];
+  const tree = (x, z, s, pine) => {
+    const y = z > -14 ? bedY(x) : 0.9;
+    const g = new THREE.Group(); g.position.set(x, y, z); g.scale.setScalar(s); scene.add(g);
+    addMesh(trunk, tm, 0, 0.5, 0, g).scale.y = pine ? 1 : 1.6;
+    if (pine) { addMesh(cone, leaves[2], 0, 1.9, 0, g); addMesh(cone, leaves[2], 0, 2.7, 0, g).scale.setScalar(0.75); }
+    else { addMesh(blob, leaves[0], 0, 2.1, 0, g); addMesh(blob, leaves[1], 0.5, 1.8, 0.2, g).scale.setScalar(0.7); addMesh(blob, leaves[1], -0.5, 1.9, -0.1, g).scale.setScalar(0.65); }
+  };
+  tree(-12.5, -3, 1.2, false); tree(-10.5, -8, 1.4, true); tree(-14, -11, 1.5, false);
+  tree(12, -2.5, 1.1, true); tree(13.5, -7, 1.4, false); tree(11, -11, 1.2, true);
+  for (let k = 0; k < 16; k++) tree(-30 + k * 4 + rand(-1, 1), -16 - rand(0, 10), rand(1.2, 2.2), k % 3 === 0);
+  {
+    const sc = document.createElement('canvas'); sc.width = sc.height = 128;
+    const x = sc.getContext('2d'), gr = x.createRadialGradient(64, 64, 0, 64, 64, 64);
+    gr.addColorStop(0, 'rgba(255,253,235,1)'); gr.addColorStop(0.22, 'rgba(255,246,200,1)'); gr.addColorStop(0.3, 'rgba(255,236,170,.55)'); gr.addColorStop(1, 'rgba(255,236,170,0)');
+    x.fillStyle = gr; x.fillRect(0, 0, 128, 128);
+    const t = new THREE.CanvasTexture(sc); t.colorSpace = THREE.SRGBColorSpace;
+    const sun = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, fog: false, depthWrite: false, toneMapped: false }));
+    sun.position.set(18, 17, -70); sun.scale.setScalar(20); scene.add(sun);
+  }
+  // blue mountains far behind the hills
+  for (let k = 0; k < 6; k++) {
+    const m = addMesh(new THREE.ConeGeometry(1, 1, 7), lam([0x9cc3d8, 0xa9cde0, 0x8fb8d0][k % 3], { flatShading: true }), -60 + k * 24 + rand(-6, 6), 0, -95 - rand(0, 20));
+    const h = rand(14, 24); m.scale.set(rand(18, 28), h, 14); m.position.y = h / 2 - 2; m.userData.noShadow = true;
+  }
+  const cm = new THREE.MeshLambertMaterial({ color: 0xffffff, emissive: 0xc4d2e0, fog: false });
+  for (let k = 0; k < 5; k++) {
+    const g = new THREE.Group(); g.position.set(rand(-26, 26), rand(7, 13), -40); scene.add(g);
+    for (let j = 0; j < 4; j++) addMesh(new THREE.SphereGeometry(rand(1, 1.8), 10, 8), cm, j * 1.4 - 2, rand(-0.3, 0.4), 0, g).scale.y = 0.65;
+    g.userData.v = rand(0.15, 0.4); clouds.push(g); g.traverse((o) => { o.userData.noShadow = true; });
+  }
+}
+
+// The jetty and the child.
+const kid = new THREE.Group();
+{
+  const wood = lam(0xb98552), dark = lam(0x8a5f3a);
+  addMesh(new THREE.BoxGeometry(3.6, 0.14, 1.8), wood, (JETTY_END - 3.6 / 2) - 0.05, DECK_Y - 0.07, 0);
+  for (let k = 0; k < 9; k++) addMesh(new THREE.BoxGeometry(0.03, 0.15, 1.8), dark, JETTY_END - 0.35 - k * 0.4, DECK_Y - 0.06, 0);
+  const post = new THREE.CylinderGeometry(0.11, 0.11, 1, 8);
+  for (const x of [-8.6, -7.3, -6.15]) for (const z of [-0.75, 0.75]) {
+    const bottom = bedY(x) - 0.3, m = addMesh(post, dark, x, (DECK_Y + bottom) / 2, z); m.scale.y = DECK_Y - bottom;
+  }
+
+  kid.position.set(-7.55, DECK_Y, -0.45); scene.add(kid);   // a little behind the slingshot, so a pulled-back bait shows in front
+  const skin = lam(0xf1c27d), shirt = lam(0xe85d4a), trousers = lam(0x3b6fb6), hat = lam(0xffc93c), shoe = lam(0x333a44);
+  const limb = (r, len, mat, x, y, ang) => { const g = new THREE.CapsuleGeometry(r, len, 3, 8); const m = addMesh(g, mat, x, y, 0, kid); m.rotation.z = ang; return m; };
+  for (const z of [-0.12, 0.12]) {
+    limb(0.09, 0.32, trousers, 0.2, 0.12, Math.PI / 2).position.z = z;
+    limb(0.08, 0.36, trousers, 0.6, 0.1, Math.PI / 2).position.z = z;   // sitting with legs out along the deck
+    addMesh(new THREE.BoxGeometry(0.1, 0.22, 0.13), shoe, 0.86, 0.17, z, kid);
+  }
+  kid.body = limb(0.2, 0.38, shirt, -0.02, 0.48, -0.1);
+  kid.head = addMesh(new THREE.SphereGeometry(0.27, 18, 14), skin, 0.04, 1.02, 0, kid);
+  addMesh(new THREE.SphereGeometry(0.06, 8, 6), skin, 0.31, 1.0, 0, kid);   // nose
+  addMesh(new THREE.SphereGeometry(0.04, 10, 8), lam(0x222222), 0.21, 1.08, 0.2, kid);   // eye
+  addMesh(new THREE.SphereGeometry(0.013, 6, 4), new THREE.MeshBasicMaterial({ color: 0xffffff }), 0.225, 1.095, 0.235, kid);
+  addMesh(new THREE.SphereGeometry(0.06, 10, 8), lam(0xff9a8a), 0.17, 0.95, 0.19, kid).scale.set(1, 0.7, 0.4);   // cheek
+  const smile = addMesh(new THREE.TorusGeometry(0.06, 0.012, 4, 12, Math.PI * 0.8), lam(0x8a3b2e), 0.22, 0.92, 0.2, kid);
+  smile.rotation.z = Math.PI * 1.1;
+  addMesh(new THREE.SphereGeometry(0.14, 10, 8), lam(0x7a4a26), -0.17, 1.08, 0, kid).scale.set(0.8, 1, 1.4);   // hair under the hat
+  addMesh(new THREE.CylinderGeometry(0.22, 0.28, 0.22, 16), hat, 0.0, 1.25, 0, kid);
+  addMesh(new THREE.CylinderGeometry(0.45, 0.45, 0.04, 20), hat, 0.02, 1.15, 0, kid).rotation.z = -0.12;
+  limb(0.065, 0.36, shirt, 0.16, 0.56, -1.05).position.z = 0.2;
+  limb(0.065, 0.36, shirt, 0.16, 0.56, -1.05).position.z = -0.2;
+}
+
+// The slingshot on the jetty end, like Angry Birds: a wooden Y with the band between its prongs.
+{
+  const wood = lam(0xa86a36), back = lam(0x7a4a26);
+  const stick = (a, b, r, m) => {
+    const d = new V3().subVectors(b, a), mesh = addMesh(new THREE.CylinderGeometry(r * 0.8, r, d.length(), 8), m);
+    mesh.position.copy(a).addScaledVector(d, 0.5); mesh.quaternion.setFromUnitVectors(new V3(0, 1, 0), d.normalize());
+  };
+  const fork = new V3(SLING.x - 0.02, DECK_Y + 0.7, 0);
+  stick(new V3(SLING.x - 0.02, DECK_Y - 0.02, 0), fork, 0.1, wood);
+  stick(fork, SLING_BACK, 0.075, back);
+  stick(fork, SLING_FRONT, 0.075, wood);
+  addMesh(new THREE.SphereGeometry(0.085, 10, 8), back, SLING_BACK.x, SLING_BACK.y, SLING_BACK.z);
+  addMesh(new THREE.SphereGeometry(0.085, 10, 8), wood, SLING_FRONT.x, SLING_FRONT.y, SLING_FRONT.z);
+}
+
+// The rod: a chain of segments that bend towards the tip.
+const ROD_SEGS = 10, ROD_LEN = 3.0;
+const rod = { base: new THREE.Group(), segs: [], angle: 0.72, bend: 0.05, tip: new THREE.Object3D(), tipPos: new V3(), reelSpin: null };
+{
+  rod.base.position.set(0.35, 0.42, 0.25); kid.add(rod.base);
+  const sl = ROD_LEN / ROD_SEGS;
+  let parent = rod.base;
+  for (let k = 0; k < ROD_SEGS; k++) {
+    const g = new THREE.Group(); g.position.x = k ? sl : -0.3; parent.add(g);
+    const r0 = 0.045 - k * 0.0034, r1 = r0 - 0.0034;
+    const geo = new THREE.CylinderGeometry(r1, r0, sl, 6); geo.rotateZ(-Math.PI / 2); geo.translate(sl / 2, 0, 0);
+    addMesh(geo, k < 2 ? lam(0xc59a5e) : lam(0x2b4d3a), 0, 0, 0, g);
+    rod.segs.push(g); parent = g;
+  }
+  rod.tip.position.x = sl; parent.add(rod.tip);
+  addMesh(new THREE.SphereGeometry(0.03, 6, 4), lam(0xffc93c), 0, 0, 0, rod.tip);
+  // the reel under the handle
+  const reel = new THREE.Group(); reel.position.set(0.32, -0.1, 0); rod.segs[0].add(reel);
+  addMesh(new THREE.CylinderGeometry(0.11, 0.11, 0.08, 14), lam(0x9aa4ae), 0, 0, 0, reel).rotation.x = Math.PI / 2;
+  rod.reelSpin = new THREE.Group(); rod.reelSpin.position.z = 0.06; reel.add(rod.reelSpin);
+  addMesh(new THREE.BoxGeometry(0.2, 0.025, 0.02), lam(0x555b63), 0.08, 0, 0, rod.reelSpin);
+  addMesh(new THREE.SphereGeometry(0.035, 8, 6), lam(0xffc93c), 0.17, 0, 0.02, rod.reelSpin);
+}
+function poseRod(dt) {
+  rod.base.rotation.z = rod.angle;
+  const sum = ROD_SEGS * (ROD_SEGS + 1) / 2;
+  rod.segs.forEach((g, k) => { if (k) g.rotation.z = -rod.bend * (k + 1) / sum; });
+  kid.updateMatrixWorld(true);
+  rod.tip.getWorldPosition(rod.tipPos);
+}
+
+/* ======== tackle models ======== */
+const tackle = {};
+{
+  const metal = new THREE.MeshStandardMaterial({ color: 0xdfe6ee, metalness: 0.8, roughness: 0.3 });
+  // bobber: red over white with a yellow-tipped antenna
+  tackle.bobber = new THREE.Group(); scene.add(tackle.bobber);
+  addMesh(new THREE.SphereGeometry(0.15, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), lam(0xe8463a), 0, 0, 0, tackle.bobber);
+  addMesh(new THREE.SphereGeometry(0.15, 16, 8, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), lam(0xffffff), 0, 0, 0, tackle.bobber);
+  addMesh(new THREE.CylinderGeometry(0.015, 0.015, 0.3, 5), lam(0x333333), 0, 0.27, 0, tackle.bobber);
+  addMesh(new THREE.SphereGeometry(0.035, 8, 6), lam(0xffc93c), 0, 0.42, 0, tackle.bobber);
+  // hook with a wriggly worm
+  tackle.hook = new THREE.Group(); scene.add(tackle.hook);
+  addMesh(new THREE.TorusGeometry(0.05, 0.009, 4, 10, Math.PI * 1.3), metal, 0, -0.06, 0, tackle.hook).rotation.z = Math.PI * 0.85;
+  const wc = new THREE.CatmullRomCurve3([new V3(-0.05, 0.02, 0), new V3(0.02, -0.06, 0), new V3(0.09, -0.02, 0), new V3(0.13, -0.12, 0), new V3(0.07, -0.18, 0)]);
+  tackle.worm = addMesh(new THREE.TubeGeometry(wc, 16, 0.024, 6), lam(0xf08a9a), 0, -0.02, 0.01, tackle.hook);
+  // sinker
+  tackle.sinker = new THREE.Group(); scene.add(tackle.sinker);
+  addMesh(new THREE.SphereGeometry(0.1, 12, 8), lam(0x7a7f88), 0, 0, 0, tackle.sinker).scale.y = 0.85;
+  // spinner lure: a blade that spins, a red bead, a body and a hook
+  tackle.lure = new THREE.Group(); scene.add(tackle.lure);
+  tackle.blade = new THREE.Group(); tackle.blade.position.x = 0.07; tackle.lure.add(tackle.blade);
+  addMesh(new THREE.SphereGeometry(0.12, 10, 6), metal, 0, 0.06, 0, tackle.blade).scale.set(0.5, 1, 0.15);
+  addMesh(new THREE.SphereGeometry(0.04, 8, 6), lam(0xe8463a), 0, 0, 0, tackle.lure);
+  addMesh(new THREE.CylinderGeometry(0.035, 0.025, 0.18, 8), lam(0xffc93c), -0.12, 0, 0, tackle.lure).rotation.z = Math.PI / 2;
+  addMesh(new THREE.TorusGeometry(0.05, 0.009, 4, 10, Math.PI * 1.3), metal, -0.24, -0.04, 0, tackle.lure).rotation.z = Math.PI * 0.85;
+  // the bite bell on the rod tip (bottom fishing)
+  // drawn bigger than life so they read on a phone
+  tackle.bobber.scale.setScalar(1.35); tackle.hook.scale.setScalar(1.4); tackle.sinker.scale.setScalar(1.3); tackle.lure.scale.setScalar(1.7);
+  tackle.bell = new THREE.Group(); tackle.bell.position.y = -0.04; rod.tip.add(tackle.bell);
+  addMesh(new THREE.ConeGeometry(0.08, 0.13, 10, 1, true), new THREE.MeshStandardMaterial({ color: 0xffc93c, metalness: 0.6, roughness: 0.35, side: THREE.DoubleSide }), 0, -0.07, 0, tackle.bell).rotation.x = Math.PI;
+}
+
+// The line is a flat ribbon (WebGL lines are always one pixel wide).
+function ribbon(color) {
+  const N = 40, g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(N * 6), 3));
+  const idx = []; for (let k = 0; k < N - 1; k++) { const a = k * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+  g.setIndex(idx);
+  const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide }));
+  m.frustumCulled = false; m.userData.N = N; scene.add(m); return m;
+}
+const lineMain = ribbon(0xf4f4f0), lineSub = ribbon(0xf4f4f0);
+const _q = new V3();
+function setLine(m, a, b, sag, width = 0.035) {
+  const N = m.userData.N, p = m.geometry.attributes.position, pts = [];
+  const cx = (a.x + b.x) / 2, cy = (a.y + b.y) / 2 - sag, cz = (a.z + b.z) / 2;
+  for (let k = 0; k < N; k++) {
+    const u = k / (N - 1), v = 1 - u;
+    pts.push(new V3(v * v * a.x + 2 * u * v * cx + u * u * b.x, v * v * a.y + 2 * u * v * cy + u * u * b.y, v * v * a.z + 2 * u * v * cz + u * u * b.z));
+  }
+  for (let k = 0; k < N; k++) {
+    const p0 = pts[Math.max(0, k - 1)], p1 = pts[Math.min(N - 1, k + 1)];
+    let tx = p1.x - p0.x, ty = p1.y - p0.y; const l = Math.hypot(tx, ty) || 1; tx /= l; ty /= l;
+    const nx = -ty * width / 2, ny = tx * width / 2;
+    p.setXYZ(k * 2, pts[k].x + nx, pts[k].y + ny, pts[k].z);
+    p.setXYZ(k * 2 + 1, pts[k].x - nx, pts[k].y - ny, pts[k].z);
+  }
+  p.needsUpdate = true; m.visible = true;
+}
+
+/* ======== fish models ======== */
+const bodyMat = new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 0.38, metalness: 0.05 });
+const glint = new THREE.MeshBasicMaterial({ color: 0xffffff });
+const finMats = {};
+const finMat = (c) => finMats[c] || (finMats[c] = lam(c, { side: THREE.DoubleSide }));
+function finGeo(pts) { const s = new THREE.Shape(); s.moveTo(pts[0][0], pts[0][1]); for (const p of pts.slice(1)) s.lineTo(p[0], p[1]); return new THREE.ShapeGeometry(s); }
+function fishColor(sp, x, y, c) {
+  const back = new THREE.Color(sp.back), side = new THREE.Color(sp.side), belly = new THREE.Color(sp.belly);
+  if (y > 0.2) c.copy(side).lerp(back, Math.min(1, (y - 0.2) / 0.6));
+  else c.copy(belly).lerp(side, clamp((y + 0.55) / 0.75, 0, 1));
+  if (sp.stripes && y > -0.4 && Math.sin(x * 10 + 1.2) > 0.4) c.multiplyScalar(0.5);
+  if (sp.spots && y > -0.45 && y < 0.65 && Math.sin(x * 19) * Math.sin(y * 15 + x * 3) > 0.45) c.lerp(new THREE.Color(0xf0eaa8), 0.65);
+}
+const taperAt = (sp, xn) => xn < 0 ? 1 + xn * (sp.taper ?? 0.6) : 1 - xn * xn * (sp.snout ?? 0.25);
+function buildFish(sp) {
+  const root = new THREE.Group(), pitch = new THREE.Group(); root.add(pitch);
+  if (sp.junk) {
+    const leather = lam(0x6b4a2e), sole = lam(0x2b2420);
+    const boot = new THREE.Group(); boot.rotation.z = -0.25; pitch.add(boot);
+    addMesh(new THREE.BoxGeometry(0.24, 0.42, 0.22), leather, -0.14, 0.12, 0, boot);
+    addMesh(new THREE.BoxGeometry(0.5, 0.17, 0.23), leather, 0.03, -0.12, 0, boot);
+    addMesh(new THREE.BoxGeometry(0.54, 0.05, 0.25), sole, 0.03, -0.22, 0, boot);
+    for (let k = 0; k < 3; k++) addMesh(new THREE.BoxGeometry(0.03, 0.02, 0.24), lam(0xe8e2d0), -0.03 + k * 0.0, 0.25 - k * 0.09, 0.0, boot).rotation.z = 0.5;
+    addMesh(new THREE.TorusGeometry(0.06, 0.012, 4, 10), lam(0x4f8f3a), 0.12, 0.0, 0.12, boot);   // a bit of weed caught on it
+    return { root, pitch, tail: null, pecs: [] };
+  }
+  const L = sp.len, H = sp.h, W = sp.w;
+  const geo = new THREE.SphereGeometry(1, 24, 14), p = geo.attributes.position, col = new Float32Array(p.count * 3), c = new THREE.Color();
+  for (let k = 0; k < p.count; k++) {
+    const x = p.getX(k), y = p.getY(k), z = p.getZ(k);
+    fishColor(sp, x, y, c); col.set([c.r, c.g, c.b], k * 3);
+    const t = taperAt(sp, x);
+    let sy = t, sz = t;
+    if (sp.flatHead && x > 0.2) { sy *= 0.82; sz *= 1.18; }
+    p.setXYZ(k, x * L / 2, y * H / 2 * sy, z * W / 2 * sz);
+  }
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3)); geo.computeVertexNormals();
+  pitch.add(new THREE.Mesh(geo, bodyMat));
+  const fm = finMat(sp.fin), T = H * 0.78;
+  const tail = new THREE.Group(); tail.position.x = -L / 2 * 0.94; pitch.add(tail);
+  tail.add(new THREE.Mesh(sp.roundTail
+    ? finGeo([[0.02, 0], [-T * 0.75, T * 0.55], [-T * 1.05, T * 0.2], [-T * 1.05, -T * 0.2], [-T * 0.75, -T * 0.55]])
+    : finGeo([[0.02, 0], [-T, T * 0.82], [-T * 0.6, 0], [-T, -T * 0.82]]), fm));
+  const dx = (sp.dorsalX ?? 0) * L / 2, dl = L * (sp.dorsalLen ?? 0.34), dh = H * 0.45, d0 = dx - dl / 2;
+  const top = H / 2 * taperAt(sp, dx / (L / 2)) * 0.9;
+  const dorsal = new THREE.Mesh(finGeo(sp.spiky
+    ? [[d0, 0], [d0 + dl * 0.1, dh], [d0 + dl * 0.25, dh * 0.55], [d0 + dl * 0.4, dh * 0.95], [d0 + dl * 0.55, dh * 0.5], [d0 + dl * 0.7, dh * 0.85], [d0 + dl, 0]]
+    : [[d0, 0], [d0 + dl * 0.3, dh], [d0 + dl, 0]]), fm);
+  dorsal.position.y = top; pitch.add(dorsal);
+  const a0 = -L * 0.28, under = -H / 2 * taperAt(sp, a0 / (L / 2)) * 0.85;
+  const anal = new THREE.Mesh(finGeo([[a0 - L * 0.06, 0], [a0 + L * 0.02, -H * 0.28], [a0 + L * 0.1, 0]]), fm); anal.position.y = under; pitch.add(anal);
+  const pecs = [];
+  for (const s of [1, -1]) {
+    const pec = new THREE.Group(); pec.position.set(L * 0.2, -H * 0.12, s * W * 0.42); pitch.add(pec);
+    pec.add(new THREE.Mesh(finGeo([[0, 0], [-H * 0.45, -H * 0.12], [-H * 0.35, -H * 0.32]]), fm)); pecs.push(pec);
+    // eye on each side
+    const xn = 0.64, yn = 0.14, zr = W / 2 * taperAt(sp, xn) * (sp.flatHead ? 1.18 : 1) * Math.sqrt(Math.max(0, 1 - xn * xn - yn * yn)), er = H * 0.12;
+    addMesh(new THREE.SphereGeometry(er, 10, 8), lam(0xffffff), L / 2 * xn, H / 2 * yn * (sp.flatHead ? 0.82 : 1), s * zr * 0.95, pitch);
+    addMesh(new THREE.SphereGeometry(er * 0.62, 8, 6), lam(0x111111), L / 2 * xn + er * 0.15, H / 2 * yn, s * (zr * 0.95 + er * 0.5), pitch);
+    addMesh(new THREE.SphereGeometry(er * 0.2, 6, 4), glint, L / 2 * xn + er * 0.3, H / 2 * yn + er * 0.25, s * (zr * 0.95 + er * 0.95), pitch);
+    if (sp.whiskers || sp.barbels) {
+      const n = sp.whiskers ? [[0.5, -0.05], [0.42, -0.35]] : [[0.18, -0.12]];
+      for (const [len, dy] of n) {
+        const a = new V3(L / 2 * 0.95, -H * 0.1, s * W * 0.15), b = a.clone().add(new V3(len * 0.4, dy, s * 0.1)), e = a.clone().add(new V3(len * 0.7, dy * 2 - 0.1, s * 0.15));
+        addMesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([a, b, e]), 8, 0.012, 4), finMat(sp.back), 0, 0, 0, pitch);
+      }
+    }
+  }
+  return { root, pitch, tail, pecs };
+}
+
+/* ======== fish ======== */
+const book = load('book', {});   // species -> biggest cm caught
+function xRangeFor(sp, s) {
+  const limit = sp.bottom ? -2.6 : -1.0 - sp.h * s;
+  let a = null, b = null;
+  for (let x = -7; x <= 9.6; x += 0.05) if (bedY(x) < limit) { if (a == null) a = x; b = x; }
+  return [a + sp.len * s * 0.3, b - sp.len * s * 0.3];
+}
+function rollSize(f) {
+  const sp = f.sp; f.cm = randInt(sp.cm[0], sp.cm[1]);
+  f.s = sp.junk ? 1 : 0.75 + 0.5 * (f.cm - sp.cm[0]) / (sp.cm[1] - sp.cm[0]);
+  f.root.scale.setScalar(f.s); f.range = xRangeFor(sp, f.s);
+}
+const half = (f) => f.sp.h * f.s / 2;
+function pickY(f, x) {
+  const floor = bedY(x) + half(f) + 0.12, ceil = -0.4 - half(f);
+  if (f.sp.bottom) return Math.min(ceil, floor + rand(0, 0.5));
+  return clamp(rand(f.sp.band[1], f.sp.band[0]), floor, ceil);
+}
+const fishes = POND.map((key) => {
+  const sp = SPECIES[key], f = { key, sp, ...buildFish(sp), pos: new V3(), v: new V3(), face: Math.random() < 0.5 ? 1 : -1, rot: 0,
+    state: 'wander', t: 0, cool: rand(0, 2), tx: 0, ty: 0, spd: sp.speed, homeZ: rand(-0.8, 0.5), ph: rand(0, 6), check: rand(0, NOTICE_EVERY), dart: 0, mouth: new V3() };
+  scene.add(f.root); rollSize(f);
+  if (sp.junk) { f.state = 'lie'; f.pos.set(BOOT_X, bedY(BOOT_X) + 0.2, 0.1); f.homeZ = 0.1; }
+  else { f.pos.x = rand(...f.range); f.pos.y = pickY(f, f.pos.x); f.pos.z = f.homeZ; f.tx = f.pos.x; }
+  f.rot = f.face > 0 ? 0 : Math.PI;
+  return f;
+});
+function mouthOf(f, out = f.mouth) {
+  if (f.sp.junk) return out.copy(f.pos).add(new V3(0.2, 0.05, 0));
+  const hl = f.sp.len * f.s / 2;
+  return out.set(f.pos.x + Math.cos(f.rot) * hl * 0.98, f.pos.y - f.sp.h * f.s * 0.06, f.pos.z - Math.sin(f.rot) * hl);
+}
+function baitOk(f) { return rig.state === 'wait' && rig.fish === f && rig.h.y < -0.15; }
+function letGo(f, cool = 1.5) { if (rig.fish === f) rig.fish = null; f.state = 'wander'; f.cool = cool; f.t = 0; }
+function depthOk(f, b) {
+  if (f.sp.bottom) return b.y < bedY(b.x) + 1.2;
+  return b.y < f.sp.band[0] + 0.9 && b.y > f.sp.band[1] - 0.9;
+}
+function notice(f) {
+  if (f.cool > 0 || rig.state !== 'wait' || rig.fish) return;
+  const like = f.sp.likes[rig.type] || 0;
+  if (!like || mouthOf(f).distanceTo(rig.h) > SENSE[rig.type] || !depthOk(f, rig.h)) return;
+  if (rig.type === 'lure') {
+    if (rig.still < 0.4 && Math.random() < like * 0.7) { rig.fish = f; f.state = 'chase'; }
+    return;
+  }
+  if (rig.h.y < -0.3 && rig.worm > 0 && Math.random() < like * 0.45) { rig.fish = f; f.state = 'approach'; }
+}
+
+const _t = new V3(), _w = new V3();
+function updateFish(f, dt, T) {
+  const sp = f.sp; f.cool -= dt; f.t -= dt;
+  const hl = sp.len * f.s / 2, hh = half(f);
+  let want = null, hold = null;
+  switch (f.state) {
+    case 'lie':   // the boot: it "bites" if a sinker lands right next to it
+      const nearBoot = rig.type === 'bottom' ? Math.abs(rig.p.x - f.pos.x) < BOOT_REACH
+        : rig.type === 'float' && Math.abs(rig.h.x - f.pos.x) < BOOT_REACH * 0.7 && rig.h.y < bedY(rig.h.x) + 1.0;
+      if (rig.state === 'wait' && nearBoot && !rig.fish && f.cool <= 0 && rig.settled) {
+        rig.fish = f; f.state = 'sniff'; f.t = rand(1.5, 3);
+      }
+      break;
+    case 'wander':
+      if (Math.abs(f.tx - f.pos.x) < 0.3 || f.t <= 0) { f.tx = rand(...f.range); f.ty = pickY(f, f.tx); f.t = rand(4, 9); f.spd = sp.speed * rand(0.5, 1); }
+      _t.set(f.tx - f.pos.x, (f.ty - f.pos.y) * 0.6, 0);
+      want = _t.lengthSq() > 0.0001 ? _t.normalize().multiplyScalar(f.spd) : _t;
+      if ((f.check -= dt) <= 0) { f.check = NOTICE_EVERY; notice(f); }
+      break;
+    case 'approach': {
+      if (!baitOk(f)) { letGo(f); break; }
+      if (Math.abs(rig.h.x - f.pos.x) > hl * 0.7) f.face = Math.sign(rig.h.x - f.pos.x);
+      _t.set(rig.h.x - f.face * hl * 0.98, rig.h.y + sp.h * f.s * 0.06, 0);
+      _w.subVectors(_t, f.pos); _w.z = 0;
+      const d = _w.length();
+      want = _w.multiplyScalar(d > 0.0001 ? Math.min(sp.speed * 1.4, d * 2) / d : 0);
+      if (d < 0.1) { f.state = 'sniff'; f.t = rand(0.7, 1.4); }
+      break;
+    }
+    case 'sniff':
+    case 'nibble':
+      if (sp.junk) { if (rig.state !== 'wait' || rig.fish !== f) { f.state = 'lie'; break; } if (f.t <= 0) startBite(f); break; }
+      if (!baitOk(f)) { letGo(f); break; }
+      hold = _t.set(rig.h.x - f.face * hl * 0.98 + f.face * 0.12 * f.dart, rig.h.y + sp.h * f.s * 0.06, 0);
+      if (f.t <= 0) {
+        if (f.state === 'sniff') { f.state = 'nibble'; f.nibLeft = randInt(...sp.nibbles); f.t = 0.2; }
+        else if (f.nibLeft > 0) {
+          f.nibLeft--; f.dart = 1; rig.nib = 1; sfx.nibble(); f.t = rand(0.6, 1.1);
+          rig.worm = Math.max(0, rig.worm - WORM_BITE);
+          if (rig.worm <= 0) missed(f, 'ate');   // nibbled it all up
+        }
+        else startBite(f);
+      }
+      break;
+    case 'bite':
+      if (!sp.junk) {
+        // swims off with the bait: down and away for a bobber, along the bottom for a ledger
+        want = _t.set(-f.face * 0.2, rig.type === 'float' ? -0.45 : 0, 0);
+        if (rig.type === 'bottom') want.x = -f.face * 0.5;
+      }
+      if (rig.biteT <= 0) missed(f, 'late');
+      break;
+    case 'chase': {
+      if (rig.state !== 'wait' || rig.fish !== f) { letGo(f); break; }
+      if (Math.abs(rig.p.x - f.pos.x) > 0.25) f.face = Math.sign(rig.p.x - f.pos.x);
+      _t.set(rig.p.x - f.face * hl * 0.98, rig.p.y + sp.h * f.s * 0.06, 0);
+      _w.subVectors(_t, f.pos); _w.z = 0;
+      const d = _w.length();
+      want = _w.multiplyScalar(d > 0.0001 ? sp.chase / d : 0);
+      if (rig.still > 1.5) letGo(f, 2.5);
+      else if (d < 0.2 + 0.1 * f.s) hookFish(f);
+      break;
+    }
+    case 'leave':
+      want = _t.set(f.face * sp.speed * 2.4, 0.15, 0);
+      if (f.t <= 0) { f.state = 'wander'; f.t = 0; }
+      break;
+    case 'fight': updateFight(f, dt, T); break;
+    case 'land': {
+      const u = Math.min(1, f.t0 += dt / 0.8);
+      f.pos.lerpVectors(f.from, _t.set(-5.6, DECK_Y + 0.95, 0.3), ease(u)); f.pos.y += Math.sin(u * Math.PI) * 0.4;
+      f.face = -1;
+      if (u >= 1 && f.state === 'land') { f.state = 'held'; setTimeout(() => openCard(f), 250); }
+      break;
+    }
+  }
+  if (sp.junk && f.state !== 'fight' && f.state !== 'land' && f.state !== 'held') {
+    f.pos.y = bedY(f.pos.x) + 0.2;
+  } else if (hold) {
+    f.pos.x = damp(f.pos.x, hold.x, 8, dt); f.pos.y = damp(f.pos.y, hold.y, 8, dt);
+    f.v.set(0, 0, 0);
+  } else if (want) {
+    f.v.lerp(want, 1 - Math.exp(-3 * dt));
+    f.pos.addScaledVector(f.v, dt);
+    if (f.state === 'wander' || f.state === 'leave') { if (Math.abs(f.v.x) > 0.08) f.face = Math.sign(f.v.x); }
+  }
+  if (f.state !== 'land' && f.state !== 'held') {
+    const x0 = f.state === 'fight' ? -5.9 : f.range[0] - 0.5, x1 = f.state === 'fight' ? 9.0 : f.range[1] + 0.5;
+    f.pos.x = clamp(f.pos.x, x0, x1);
+    f.pos.y = clamp(f.pos.y, bedY(f.pos.x) + hh + 0.06, -0.3 - hh);
+    if (f.state === 'leave' && (f.pos.x <= x0 + 0.05 || f.pos.x >= x1 - 0.05)) f.face = -f.face;
+  }
+  const near = f.state === 'approach' || f.state === 'sniff' || f.state === 'nibble' || f.state === 'bite' || f.state === 'chase' || f.state === 'fight';
+  f.pos.z = damp(f.pos.z, near ? 0 : f.homeZ, 2, dt);
+  f.dart = Math.max(0, f.dart - dt * 6);
+
+  // pose
+  f.rot = damp(f.rot, f.face > 0 ? 0 : Math.PI, f.state === 'fight' ? 9 : 5, dt);
+  f.root.position.copy(f.pos); f.root.rotation.y = f.rot;
+  if (f.state === 'held' || f.state === 'land') f.pitch.rotation.z = damp(f.pitch.rotation.z, 1.25, 6, dt);
+  else if (!sp.junk) f.pitch.rotation.z = damp(f.pitch.rotation.z, clamp(f.v.y / (Math.abs(f.v.x) + 0.5), -0.5, 0.5), 4, dt);
+  if (f.tail) {
+    const thrash = f.state === 'fight' && f.phase === 'pull' ? 3 : f.state === 'land' || f.state === 'held' ? 2.6 : 1;
+    f.ph += dt * (3 + f.v.length() * 5) * thrash;
+    f.tail.rotation.y = Math.sin(f.ph) * 0.5 * Math.min(1.6, thrash);
+    f.pecs.forEach((p, k) => { p.rotation.y = Math.sin(f.ph * 0.7 + k) * 0.5; });
+    if (f.state === 'fight' && f.phase === 'pull') f.root.rotation.x = Math.sin(T * 25) * 0.15; else f.root.rotation.x = 0;
+  }
+  mouthOf(f);
+}
+
+/* ======== the rig: cast, wait, bite, fight ======== */
+const rig = { type: load('tackle', 'float'), next: null, state: 'ready', t: 0, p: new V3(), h: new V3(), depth: FLOAT_DEPTH, from: new V3(), to: new V3(), vel: new V3(), flyDur: 0.6,
+  fish: null, biteT: 0, nib: 0, plunge: 0, ring: 0, still: 0, settled: false, sag: 0.3, spin: 0, tension: 0, queuedV: null, bangT: 0, dingT: 0, worm: 1, wormPop: 0, lost: null, spat: false, snapFrom: new V3() };
+let reeling = false, reelRate = 0, crankIdle = 0, snaps = 0, nows = 0, saidWaiting = false, saidLure = false, saidThrow = false, wormTips = 0, idle = 0, misses = 0, early = 0, firstFight = true;
+
+function hangPos(out) { return out.copy(SLING); }   // ready to throw: the bait sits in the slingshot's pouch
+// Where a throw from `start` lands: the flight time and x, with the speed bent so it always lands in the water
+// between the jetty and the far reeds (too weak drops it just off the jetty end, too strong at the reeds' edge).
+function throwPath(start, vx, vy, out) {
+  const t = (vy + Math.sqrt(vy * vy + 2 * GRAVITY * Math.max(0, start.y))) / GRAVITY;
+  const x = clamp(start.x + vx * t, ...CAST_X);
+  out.vx = (x - start.x) / t; out.vy = vy; out.t = t; out.x = x;
+  return out;
+}
+const _path = {};
+function throwCast(vx, vy) {
+  if (rig.state === 'wait') reelBack();
+  if (rig.state === 'quickback') { rig.queuedV = [vx, vy]; return; }
+  if (rig.state !== 'ready') return;
+  const th = throwPath(rig.p, vx, vy, _path);
+  rig.from.copy(rig.p); rig.vel.set(th.vx, th.vy, 0); rig.flyDur = th.t; rig.to.set(th.x, 0, 0);
+  rig.state = 'fly'; rig.t = 0; idle = 0;
+  sfx.whoosh();
+  window.tbxEvent?.('cast', { tackle: rig.type, x: +th.x.toFixed(1) });
+}
+function reelBack() {
+  if (rig.fish) letGo(rig.fish);
+  rig.fish = null; rig.biteT = 0; rig.state = 'quickback'; rig.t = 0; rig.from.copy(rig.p);
+}
+// For tests: a 40° throw that lands at x (and, for a bobber, sets the worm's depth).
+function castTo(x, depth) {
+  if (depth != null) rig.depth = depth;
+  const a = 0.7, start = rig.state === 'ready' ? rig.p : hangPos(new V3()), dx = clamp(x, ...CAST_X) - start.x;
+  const v = Math.sqrt(GRAVITY * dx * dx / (2 * Math.cos(a) ** 2 * Math.max(0.1, start.y + dx * Math.tan(a))));
+  throwCast(v * Math.cos(a), v * Math.sin(a));
+}
+function startBite(f) {
+  f.state = 'bite'; rig.biteT = STRIKE_WINDOW; rig.dingT = 0;
+  if (!f.sp.junk && nows++ < 3) say('now');
+  if (rig.type === 'float') sfx.plunk(); else sfx.ding();
+}
+function missed(f, why) {
+  f.state = 'leave'; f.face = -f.face; f.t = 1.8; f.cool = 6; rig.fish = null; rig.biteT = 0;
+  if (f.sp.junk) { f.state = 'lie'; f.face = 1; }
+  sfx.swish();
+  const where = rig.type === 'float' ? rig.p : rod.tipPos;
+  if (why !== 'early' && !f.sp.junk) rig.worm = 0;   // a fish that bit (or nibbled it all) swims off with the worm
+  if (rig.worm <= 0) {
+    showMsg('🪱', where);
+    if (wormTips++ < 3) say(why === 'ate' ? 'worm-nibbled' : 'worm-ate');
+  } else if (why === 'early') {
+    showMsg('⏳', mouthOf(f));
+    if (early++ < 3) say(rig.type === 'float' ? 'soon-float' : 'soon-bell');
+  } else {
+    showMsg('💨', where);
+    if (misses++ < 3) say(rig.type === 'float' ? 'late-float' : 'late-bell');
+  }
+  window.tbxEvent?.('missed', { fish: f.key, why });
+}
+function strike() {
+  const f = rig.fish;
+  if (!f || rig.state !== 'wait') return false;
+  if (f.state === 'bite') { hookFish(f); return true; }
+  if (f.state === 'sniff' || f.state === 'nibble') { if (f.sp.junk) return false; missed(f, 'early'); return true; }
+  return false;
+}
+function hookFish(f) {
+  if (!f.sp.junk) { voiceFetch(`fish-${f.key}`); voiceFetch(`cm-${f.cm}`); }
+  if (!f.sp.junk && rig.type !== 'lure') rig.worm = 0;   // it's in the fish now
+  f.state = 'fight'; f.phase = 'rest'; f.pt = 1.1; f.stam = f.sp.junk ? 0 : 2.5 + f.sp.fight * 3;
+  rig.fish = f; rig.state = 'fight'; rig.tension = 0; rig.biteT = 0; rig.bangT = 0.7;
+  sfx.strike(); haptic(30);
+  if (firstFight) { say('wind'); firstFight = false; }
+}
+// Too much strain and the line snaps: the fish swims off trailing the tackle, shakes the hook out (it's fine),
+// and a new hook is tied on.
+function snapLine(f) {
+  f.state = 'leave'; f.face = 1; f.t = SNAP_SPIT + 0.6; f.cool = ESCAPE_COOL; f.phase = null;
+  rig.lost = f; rig.fish = null; rig.tension = 0; rig.state = 'snapped'; rig.t = 0; rig.spat = false;
+  rig.snapFrom.copy(rig.type === 'float' ? _w.copy(rig.p).add(_q.set(0, 0.57, 0)) : rig.p);
+  sfx.snap(); haptic(80);
+  showMsg('💥', _t.copy(rod.tipPos).lerp(f.mouth, 0.5));
+  say(snaps++ < 3 ? 'snap-tip' : 'snap');
+  window.tbxEvent?.('snapped', { fish: f.key });
+}
+// How hard a fish is to reel in: its fight times its size (a big pike is about 2, a small roach under 0.5).
+const strength = (f) => f.sp.junk ? 1.3 : f.sp.fight * f.s;
+function updateFight(f, dt, T) {
+  const sp = f.sp;
+  if (f.phase === 'pull') {
+    f.face = 1;
+    // winding against a pull barely slows a strong fish, and strains the line faster the harder you wind
+    const S = strength(f), v = (0.9 + sp.fight * 0.7) * lerp(1, clamp(0.25 + 0.35 * S, 0.3, 0.95), reelRate);
+    f.pos.x += v * dt; f.pos.y += f.pullDy * v * dt;
+    rig.tension += reeling ? TENSION_UP * dt * (0.4 + 0.5 * S) * (0.4 + 0.6 * reelRate) : -TENSION_DOWN * dt * 0.5;
+    if (reeling && rig.tension > 0.5 && (rig.creakT = (rig.creakT || 0) - dt) <= 0) { rig.creakT = 0.5 - rig.tension * 0.2; sfx.creak(rig.tension); }
+    f.stam -= dt; f.pt -= dt;
+    if (f.pos.y > -0.5 - half(f) && Math.random() < dt * 8) splash(f.pos.x + rand(-0.3, 0.3), 2, 1.6);
+    if (f.pt <= 0 || f.stam <= 0) { f.phase = 'rest'; f.pt = rand(1.5, 2.6); }
+  } else {
+    if (reeling) {
+      _w.subVectors(LAND, f.mouth); _w.z = 0;
+      const d = _w.length();
+      if (d > 0.001) f.pos.addScaledVector(_w, Math.min(d, REEL_SPEED * reelRate / (0.6 + 0.45 * strength(f)) * dt) / d);   // a strong fish comes in slowly
+      f.face = -1;
+    }
+    rig.tension -= TENSION_DOWN * dt * (reeling ? 1 : 2.4);
+    f.pt -= dt;
+    if (f.pt <= 0 && f.stam > 0) {
+      f.phase = 'pull'; f.pt = rand(0.8, 1.4) * (0.7 + 0.3 * sp.fight); f.pullDy = rand(-0.6, 0.35);
+      if (f.pos.y > -1.2) splash(f.pos.x, 6, 2.4);
+      haptic(20);
+    }
+  }
+  rig.tension = clamp(rig.tension, 0, 1);
+  if (rig.tension >= 1) { snapLine(f); return; }
+  if (mouthOf(f).distanceTo(LAND) < 0.45) {
+    f.state = 'land'; f.t0 = 0; f.from = f.pos.clone(); rig.state = 'land';
+    splash(f.pos.x, 10, 3); sfx.splash(); if (sp.junk) sfx.boot();
+  }
+}
+
+function updateRig(dt, T) {
+  rig.nib = Math.max(0, rig.nib - dt * 4);
+  rig.bangT -= dt;
+  const t = rig.type;
+  if (rig.state === 'ready' && rig.next) { rig.type = rig.next; rig.next = null; save('tackle', rig.type); markTackle(); }
+  switch (rig.state) {
+    case 'ready': case 'card':
+      if (rig.state === 'ready' && rig.worm < 1 && t !== 'lure') { rig.worm = 1; rig.wormPop = 1; sfx.pop(); }
+      // aiming: the bait is under the finger, on the band; otherwise it sits in the pouch
+      if (rig.state === 'ready' && aim.on && !aim.worm) { aimAt(); rig.p.copy(SLING).add(aim.pull); }
+      else { hangPos(_t); rig.p.x = damp(rig.p.x, _t.x, 12, dt); rig.p.y = damp(rig.p.y, _t.y, 12, dt); }
+      rig.p.z = 0;
+      rig.h.copy(rig.p).add(_w.set(t === 'bottom' ? -0.12 : 0, t === 'lure' ? 0 : -0.35, 0));
+      break;
+    case 'fly': {
+      rig.t += dt;
+      const u = Math.min(rig.t, rig.flyDur);
+      rig.p.set(rig.from.x + rig.vel.x * u, rig.from.y + rig.vel.y * u - GRAVITY * u * u / 2, 0);
+      rig.h.copy(rig.p).add(_w.set(-0.1, t === 'lure' ? 0 : -0.3, 0));
+      if (rig.t >= rig.flyDur) {
+        rig.state = 'wait'; rig.still = 0; rig.settled = false; rig.biteT = 0; rig.fish = null;
+        rig.p.y = 0; rig.h.copy(rig.p);
+        splash(rig.p.x, 6, 1.6); ripple(rig.p.x); sfx.plop();
+      }
+      break;
+    }
+    case 'wait': {
+      const f = rig.fish, biting = f && f.state === 'bite';
+      if (biting) rig.biteT -= dt;
+      if (t === 'float') {
+        if (reeling && !biting) { rig.p.x -= RETRIEVE_SPEED * reelRate * dt; rig.still = 0; }
+        if (biting && !f.sp.junk) rig.p.x = damp(rig.p.x, f.mouth.x, 3, dt);
+        rig.plunge = damp(rig.plunge, biting ? 1 : 0, 10, dt);
+        rig.p.y = wave(rig.p.x, T) - rig.plunge * 0.5 - rig.nib * 0.1;
+        if (biting) rig.h.copy(f.mouth);
+        else {
+          const depth = Math.max(rig.depth, bedY(rig.p.x) + 0.25);
+          rig.h.x = damp(rig.h.x, rig.p.x + Math.sin(T * 0.9) * 0.06, 4, dt);
+          rig.h.y = rig.h.y > depth ? Math.max(depth, rig.h.y - 1.8 * dt) : damp(rig.h.y, depth, 4, dt);
+          rig.settled = rig.h.y - depth < 0.05;
+        }
+        if (rig.p.x < LAND.x + 0.2) setReady();
+      } else if (t === 'bottom') {
+        const bed = bedY(rig.p.x) + 0.08;
+        if (reeling && !biting) { rig.p.x -= RETRIEVE_SPEED * 0.8 * reelRate * dt; rig.p.y = Math.max(bed, rig.p.y); }
+        rig.p.y = rig.p.y > bed ? Math.max(bed, rig.p.y - 3 * dt) : bed;
+        rig.settled = rig.p.y - bed < 0.02;
+        if (biting && !f.sp.junk) rig.h.copy(f.mouth);
+        else { rig.h.x = damp(rig.h.x, rig.p.x - 0.32, 6, dt); rig.h.y = damp(rig.h.y, rig.p.y + 0.14 + Math.sin(T * 3) * 0.02, 6, dt); }
+        rig.ring = Math.max(rig.ring - dt * 2, rig.nib * 0.7, biting ? 1 : 0);
+        if (biting && (rig.dingT -= dt) <= 0) { rig.dingT = 0.32; sfx.ding(); }
+        if (rig.p.x < LAND.x + 0.2) setReady();
+      } else {
+        const bed = bedY(rig.p.x) + 0.12;
+        if (reeling) {
+          _w.subVectors(_t.set(LAND.x + 0.1, -0.3, 0), rig.p); const d = _w.length();
+          if (d > 0.001) rig.p.addScaledVector(_w, Math.min(d, LURE_SPEED * reelRate * dt) / d);
+          rig.p.y = Math.max(rig.p.y, bed);
+          rig.still = 0;
+        } else {
+          rig.still += dt;
+          rig.p.y = Math.max(bed, Math.min(-0.08, rig.p.y - LURE_SINK * dt));
+        }
+        rig.h.copy(rig.p);
+        rig.spin += dt * (reeling ? 28 * reelRate : rig.p.y > bed + 0.01 ? 6 : 0);
+        rig.settled = true;
+        if (rig.p.x < LAND.x + 0.45 && rig.p.y > -1.0) setReady();
+      }
+      break;
+    }
+    case 'fight': case 'land': {
+      const f = rig.fish;
+      rig.h.copy(f.mouth);
+      if (t === 'float') { rig.p.set(f.mouth.x - 0.05, Math.min(wave(f.mouth.x, T), f.mouth.y + Math.abs(rig.depth)), 0); }
+      else if (t === 'bottom') { _w.subVectors(rod.tipPos, f.mouth).normalize(); rig.p.copy(f.mouth).addScaledVector(_w, 0.4); }
+      else rig.p.copy(f.mouth);
+      if (rig.state === 'fight') rig.spin += dt * 28 * reelRate;
+      break;
+    }
+    case 'snapped': {
+      rig.t += dt;
+      const f = rig.lost;
+      if (!rig.spat) {   // the tackle goes with the fish
+        rig.h.copy(f.mouth);
+        if (t === 'float') { const x = f.mouth.x - 0.5; rig.p.set(x, Math.min(wave(x, T), f.mouth.y + 0.6), 0); }
+        else if (t === 'bottom') rig.p.copy(f.mouth).add(_w.set(-0.4, -0.05, 0));
+        else rig.p.copy(f.mouth);
+        if (rig.t >= SNAP_SPIT) {
+          rig.spat = true; showMsg('💨', f.mouth); sfx.spit();
+          for (let k = 0; k < 4; k++) bubble(f.mouth.x, f.mouth.y + k * 0.1, f.mouth.z);
+        }
+      } else if (rig.t >= SNAP_SPIT + 0.7) {   // tie on a new hook (the ready state adds a worm)
+        rig.state = 'ready'; rig.lost = null; rig.spat = false; hangPos(rig.p); rig.worm = 0;
+        if (t === 'lure') { sfx.pop(); rig.wormPop = 1; }
+        showMsg('✨', rod.tipPos);
+      }
+      break;
+    }
+    case 'quickback': {
+      rig.t += dt;
+      const u = Math.min(1, rig.t / 0.35);
+      hangPos(_t); rig.p.lerpVectors(rig.from, _t, ease(u));
+      rig.h.copy(rig.p).add(_w.set(0, t === 'lure' ? 0 : -0.35, 0));
+      if (u >= 1) { rig.state = 'ready'; if (rig.queuedV) { const [vx, vy] = rig.queuedV; rig.queuedV = null; if (rig.next) { rig.type = rig.next; rig.next = null; save('tackle', rig.type); markTackle(); } throwCast(vx, vy); } }
+      break;
+    }
+  }
+  if (rig.state !== 'wait' || t !== 'bottom') rig.ring = Math.max(0, rig.ring - dt * 2);
+}
+function setReady() { rig.state = 'ready'; if (rig.fish) letGo(rig.fish); rig.fish = null; rig.biteT = 0; idle = 0; }
+
+function placeRig(T, dt) {
+  const t = rig.type, inWater = rig.state === 'wait' || rig.state === 'fight';
+  tackle.bobber.visible = t === 'float';
+  tackle.sinker.visible = t === 'bottom';
+  tackle.lure.visible = t === 'lure';
+  tackle.hook.visible = t !== 'lure' && !(rig.fish && (rig.state === 'fight' || rig.state === 'land' || rig.fish.state === 'bite'));
+  tackle.bell.visible = t === 'bottom';
+  if (rig.state === 'snapped' && rig.spat) tackle.bobber.visible = tackle.sinker.visible = tackle.lure.visible = tackle.hook.visible = false;
+  tackle.bobber.position.copy(rig.p);
+  tackle.bobber.rotation.z = rig.state === 'fly' ? 0.6 : rig.plunge * 0.5 + Math.sin(T * 1.7) * 0.06;
+  tackle.sinker.position.copy(rig.p);
+  tackle.hook.position.copy(rig.h);
+  tackle.worm.rotation.z = Math.sin(T * 5) * 0.25;
+  rig.wormPop = Math.max(0, rig.wormPop - dt * 3);
+  tackle.worm.visible = rig.worm > 0;
+  tackle.worm.scale.setScalar((0.3 + 0.7 * rig.worm) * (1 + Math.sin(rig.wormPop * Math.PI) * 0.6));
+  tackle.lure.position.copy(rig.p);
+  tackle.lure.rotation.z = rig.state === 'wait' && reeling ? Math.PI : Math.PI * 0.5;
+  tackle.blade.rotation.x = rig.spin;
+  tackle.bell.rotation.z = Math.sin(T * 34) * 0.55 * rig.ring;
+  rod.reelSpin.rotation.z = -rig.spin * 0.5;
+  // the line: rod tip to the bobber / sinker / lure, then a short trace to the hook
+  const sagWant = rig.state === 'ready' || rig.state === 'card' ? 0 : rig.state === 'fly' ? 0.25
+    : rig.state === 'fight' || rig.state === 'land' ? 0.02 : reeling ? 0.12 : t === 'float' ? 0.9 : t === 'bottom' ? 0.35 : rig.still > 0.5 ? 0.45 : 0.1;
+  rig.sag = damp(rig.sag, sagWant, 6, dt);
+  // the line goes red and shivers as the strain builds
+  const strain = rig.state === 'fight' ? clamp((rig.tension - 0.35) / 0.65, 0, 1) : 0;
+  lineMain.material.color.setRGB(1, 1 - strain * 0.75, 1 - strain * 0.8);
+  if (rig.state === 'snapped') {
+    // the broken end whips back and dangles from the rod tip
+    const u = Math.min(1, rig.t / 0.3), wob = Math.sin(rig.t * 14) * 0.3 * Math.max(0, 1 - rig.t);
+    _w.set(rod.tipPos.x + 0.3 + wob, rod.tipPos.y - 1.1, 0);
+    setLine(lineMain, rod.tipPos, _q.lerpVectors(rig.snapFrom, _w, ease(u)), 0.15 + wob * 0.4);
+    if (!rig.spat && t !== 'lure') setLine(lineSub, t === 'float' ? _q.copy(rig.p).add(_t.set(0, -0.15, 0)) : rig.p, rig.h, 0, 0.025);
+    else lineSub.visible = false;
+    return;
+  }
+  const end = t === 'float' ? _w.copy(rig.p).add(_q.set(0, 0.57, 0)) : rig.p;
+  setLine(lineMain, rod.tipPos, end, rig.sag + (strain > 0.4 ? Math.sin(T * 70) * 0.04 * strain : 0));
+  if (t === 'float') setLine(lineSub, _q.copy(rig.p).add(_t.set(0, -0.15, 0)), rig.h, 0, 0.025);
+  else if (t === 'bottom') setLine(lineSub, rig.p, rig.h, -0.05, 0.025);
+  else lineSub.visible = false;
+}
+
+/* ======== effects: splashes, ripples, bubbles ======== */
+const drops = [], rings = [], bubbles = [];
+{
+  const dg = new THREE.SphereGeometry(0.05, 6, 4), dm = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9 });
+  for (let k = 0; k < 60; k++) { const m = addMesh(dg, dm); m.visible = false; drops.push({ m, v: new V3(), on: false }); }
+  const rg = new THREE.TorusGeometry(1, 0.025, 4, 36); rg.rotateX(Math.PI / 2);
+  for (let k = 0; k < 8; k++) { const m = addMesh(rg, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true })); m.visible = false; rings.push({ m, t: 1 }); }
+  const bg = new THREE.SphereGeometry(1, 8, 6), bm = new THREE.MeshBasicMaterial({ color: 0xe8f8ff, transparent: true, opacity: 0.55 });
+  for (let k = 0; k < 24; k++) { const m = addMesh(bg, bm); m.visible = false; bubbles.push({ m, on: false, ph: 0 }); }
+}
+function splash(x, n, power) {
+  for (let k = 0; k < n; k++) {
+    const d = drops.find((d) => !d.on); if (!d) return;
+    d.on = true; d.m.visible = true; d.m.position.set(x + rand(-0.15, 0.15), 0.05, rand(-0.3, 0.6));
+    d.v.set(rand(-1.2, 1.2), rand(0.6, 1) * power, 0); d.m.scale.setScalar(rand(0.6, 1.3));
+  }
+}
+function ripple(x) { const r = rings.find((r) => r.t >= 1) || rings[0]; r.t = 0; r.x = x; r.m.visible = true; }
+function bubble(x, y, z) {
+  const b = bubbles.find((b) => !b.on); if (!b) return;
+  b.on = true; b.m.visible = true; b.m.position.set(x, y, z); b.m.scale.setScalar(rand(0.03, 0.07)); b.ph = rand(0, 6);
+}
+let bubbleT = 0;
+function updateEffects(dt, T) {
+  for (const d of drops) if (d.on) {
+    d.v.y -= 9.8 * dt; d.m.position.addScaledVector(d.v, dt);
+    if (d.v.y < 0 && d.m.position.y < wave(d.m.position.x, T)) { d.on = false; d.m.visible = false; }
+  }
+  for (const r of rings) if (r.t < 1) {
+    r.t += dt / 1.1; r.m.position.set(r.x, wave(r.x, T) + 0.01, 0.2);
+    r.m.scale.setScalar(0.15 + r.t * 1.1); r.m.material.opacity = (1 - r.t) * 0.8;
+    if (r.t >= 1) r.m.visible = false;
+  }
+  if ((bubbleT -= dt) <= 0) {
+    bubbleT = rand(0.3, 0.8);
+    const x = rand(-5, 8.5); bubble(x, bedY(x) + 0.1, rand(-2, 1));
+    const f = fishes[randInt(0, fishes.length - 1)];
+    if (!f.sp.junk && f.pos.y < -0.5 && f.state !== 'held') bubble(f.mouth.x, f.mouth.y + 0.05, f.mouth.z);
+  }
+  for (const b of bubbles) if (b.on) {
+    b.m.position.y += dt * 0.7; b.m.position.x += Math.sin(T * 3 + b.ph) * dt * 0.15;
+    if (b.m.position.y > -0.05) { b.on = false; b.m.visible = false; }
+  }
+  for (const c of clouds) { c.position.x += c.userData.v * dt; if (c.position.x > 34) c.position.x = -34; }
+  for (const p of pads) p.position.y = wave(p.position.x, T) + 0.02;
+}
+
+/* ======== sound ======== */
+let muted = FORCE_MUTE || load('muted', false);
+let ac = null, out = null, noiseBuf = null;
+function audio() {
+  if (muted) return null;
+  if (!ac) {
+    try {
+      ac = new (window.AudioContext || window.webkitAudioContext)();
+      out = ac.createGain(); out.gain.value = 0.6; out.connect(ac.destination);
+      noiseBuf = ac.createBuffer(1, ac.sampleRate, ac.sampleRate);
+      const d = noiseBuf.getChannelData(0); for (let k = 0; k < d.length; k++) d[k] = Math.random() * 2 - 1;
+    } catch { return null; }
+    decodeClips();
+  }
+  if (ac.state === 'suspended') ac.resume();
+  return ac;
+}
+function tone(f0, f1, dur, type = 'sine', vol = 0.25, delay = 0) {
+  const a = audio(); if (!a) return;
+  const t = a.currentTime + delay, o = a.createOscillator(), g = a.createGain();
+  o.type = type; o.frequency.setValueAtTime(f0, t); if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g).connect(out); o.start(t); o.stop(t + dur + 0.02);
+}
+function noise(dur, f0, f1, vol = 0.25, type = 'bandpass') {
+  const a = audio(); if (!a) return;
+  const t = a.currentTime, s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
+  s.buffer = noiseBuf; f.type = type; f.Q.value = 0.9;
+  f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  s.connect(f).connect(g).connect(out); s.start(t); s.stop(t + dur);
+}
+/* ======== recorded sound effects ======== */
+// ElevenLabs Sound Effects clips (made and trimmed by dev/sfx.py) in assets/sfx/<name>.mp3, fetched with the page
+// and decoded on the first tap. Each sound plays its clip, or its synthesized version below if the clip isn't there.
+const SFX_V = 1;               // bump after replacing a file in assets/sfx/
+const CLIP_VOL = 0.9;          // all the clips together
+const CRITTER_EVERY = [8, 16]; // seconds between pond-life sounds (duck, frog, bird, dragonfly)
+const SFX_CLIPS = ['stretch', 'twang', 'whoosh', 'plop', 'splash', 'plunk', 'nibble', 'bell', 'strike', 'click', 'creak', 'snap', 'spit', 'pop', 'boot', 'catch', 'duck', 'frog', 'bird', 'buzz'];
+const sfxRaw = {}, sfxBuf = {};
+for (const n of SFX_CLIPS) sfxRaw[n] = fetch(`assets/sfx/${n}.mp3?v=${SFX_V}`).then((r) => r.ok ? r.arrayBuffer() : null).catch(() => null);
+function decodeClips() {
+  for (const n of SFX_CLIPS) sfxRaw[n].then((b) => b && ac.decodeAudioData(b.slice(0))).then((buf) => { sfxBuf[n] = buf || null; }).catch(() => { sfxBuf[n] = null; });
+}
+// Plays a clip; false if it isn't loaded (so the caller synthesizes). While muted it plays nothing and says true.
+function clip(name, { vol = 1, rate = 1, pan = 0 } = {}) {
+  const a = audio(); if (!a) return true;
+  const buf = sfxBuf[name]; if (!buf) return false;
+  const s = a.createBufferSource(), g = a.createGain();
+  s.buffer = buf; s.playbackRate.value = rate; g.gain.value = CLIP_VOL * vol;
+  let node = s.connect(g);
+  if (pan && a.createStereoPanner) { const p = a.createStereoPanner(); p.pan.value = clamp(pan, -1, 1); node = node.connect(p); }
+  node.connect(out); s.start();
+  return true;
+}
+const sfx = {
+  whoosh: () => clip('whoosh') || noise(0.35, 500, 2400, 0.18),
+  pop: () => clip('pop') || (tone(500, 1100, 0.09, 'sine', 0.2), tone(900, 1500, 0.07, 'triangle', 0.08, 0.06)),
+  stretch: (k) => clip('stretch', { vol: 0.5 + k * 0.1, rate: 0.85 + k * 0.08 }) || tone(180 + k * 60, 200 + k * 60, 0.05, 'triangle', 0.07),
+  twang: () => clip('twang') || (tone(260, 90, 0.25, 'triangle', 0.22), noise(0.12, 900, 300, 0.1)),
+  plop: () => clip('plop') || (tone(700, 160, 0.14, 'sine', 0.3), noise(0.25, 1800, 400, 0.12, 'lowpass')),
+  splash: () => clip('splash') || (noise(0.5, 2500, 300, 0.3, 'lowpass'), tone(500, 120, 0.2, 'sine', 0.15)),
+  nibble: () => clip('nibble', { rate: rand(0.9, 1.15) }) || tone(900, 650, 0.06, 'triangle', 0.15),
+  plunk: () => clip('plunk') || (tone(420, 110, 0.25, 'sine', 0.35), noise(0.2, 1200, 300, 0.15, 'lowpass')),
+  ding: () => clip('bell', { vol: 0.8 }) || (tone(1760, 1750, 0.6, 'sine', 0.18), tone(2637, 2630, 0.4, 'sine', 0.08)),
+  strike: () => clip('strike') || (tone(300, 900, 0.15, 'triangle', 0.25), noise(0.2, 3000, 800, 0.12)),
+  tick: () => clip('click', { vol: 0.7, rate: rand(0.95, 1.1) }) || tone(2400, 2300, 0.015, 'square', 0.04),
+  swish: () => noise(0.4, 1500, 400, 0.12),   // a fish darting off stays synthesized: soft and short
+  snap: () => clip('snap') || (noise(0.07, 5000, 2500, 0.35, 'highpass'), tone(1400, 180, 0.2, 'triangle', 0.25)),
+  creak: (k) => clip('creak', { vol: 0.35 + k * 0.6, rate: 0.9 + k * 0.2 }) || tone(110 + k * 90, 95 + k * 80, 0.12, 'sawtooth', 0.035),
+  spit: () => clip('spit', { vol: 0.8 }) || noise(0.5, 900, 300, 0.12, 'lowpass'),
+  boot: () => clip('boot') || tone(220, 90, 0.3, 'sine', 0.25),
+  fanfare: () => clip('catch') || [523, 659, 784, 1047].forEach((f, k) => tone(f, f, 0.28, 'triangle', 0.22, k * 0.11)),
+};
+// Pond life: now and then a duck, the frog, a bird or the dragonfly, heard from where it is on screen.
+let critterT = rand(...CRITTER_EVERY);
+function updateCritters(dt) {
+  if ((critterT -= dt) > 0) return;
+  critterT = rand(...CRITTER_EVERY);
+  if (!ac || muted || !$('card').hidden) return;   // only once a tap has started the sound, and not over the catch card
+  const who = ['duck', 'frog', 'bird', 'buzz'][randInt(0, 3)];
+  const at = who === 'duck' ? life.ducks[0].g.position.x : who === 'frog' ? pads[1].position.x : who === 'buzz' ? life.fly.position.x : rand(-12, 12);
+  clip(who, { pan: (at - view.cx) / (view.w * view.zoom / 2) * 0.7, rate: rand(0.94, 1.06) });
+}
+/* ======== the coach's voice ======== */
+// Recorded lines (Kokoro, voice bf_emma, made by dev/voices.py) in assets/voice/<key>.mp3. If a clip can't load,
+// the device's own voice says the same words. say('fish-pike', 'cm-72') plays lines one after another; a new
+// say() cuts off whatever is still playing. Keep LINE_TEXT in step with LINES in dev/voices.py.
+const VOICE_V = 1;          // bump after re-rendering assets/voice/
+const VOICE_VOL = 1.0;
+const LINE_TEXT = {
+  throw: 'Grab the bait, pull it back, and let go!', wind: 'Got it! Wind the reel round and round!',
+  'soon-float': 'Too soon! Wait till the bobber goes right under.', 'soon-bell': 'Too soon! Wait for the bell.',
+  'late-float': 'Tap when the bobber goes under!', 'late-bell': 'Tap when the bell rings!',
+  'worm-ate': 'It ate your worm! Reel in for a new one.', 'worm-nibbled': 'It nibbled up your worm! Reel in for a new one.',
+  'snap-tip': 'Snap! The line broke. Stop winding when the fish pulls!', snap: 'Snap!', boot: 'An old boot! Ha ha!',
+  'fish-roach': 'A roach!', 'fish-perch': 'A perch!', 'fish-carp': 'A carp!', 'fish-pike': 'A pike!', 'fish-catfish': 'A catfish!',
+  now: 'Now!', new: 'A new one for your book!', biggest: 'Your biggest one yet!', letgo: 'Bye-bye, fish! Off you swim!',
+  'lure-tip': 'Wind the reel to make the spinner swim!', waiting: 'Shh. Wait for a fish to find it.',
+};
+const lineText = (key) => key.startsWith('cm-') ? `${key.slice(3)} centimetres!` : LINE_TEXT[key] || '';
+const voiceRaw = {}, voiceBuf = {};
+function voiceFetch(key) {
+  return voiceRaw[key] ||= fetch(`assets/voice/${key}.mp3?v=${VOICE_V}`).then((r) => r.ok ? r.arrayBuffer() : null).catch(() => null);
+}
+async function voiceGet(key) {
+  if (key in voiceBuf) return voiceBuf[key];
+  const a = audio(), raw = a && await voiceFetch(key);
+  if (!raw) return null;
+  try { voiceBuf[key] = await a.decodeAudioData(raw.slice(0)); } catch { voiceBuf[key] = null; }
+  return voiceBuf[key];
+}
+// the everyday lines come down with the page; a fish's name and size are fetched when it's hooked
+for (const key of Object.keys(LINE_TEXT)) if (!key.startsWith('fish-')) voiceFetch(key);
+let sayToken = 0, voiceSrc = null;
+function playVoice(buf) {
+  return new Promise((done) => {
+    const s = ac.createBufferSource(), g = ac.createGain();
+    g.gain.value = VOICE_VOL; s.buffer = buf; s.connect(g).connect(out);
+    s.onended = done; voiceSrc = s; s.start();
+  });
+}
+function speakText(text) {
+  return new Promise((done) => {
+    if (!('speechSynthesis' in window) || !text) return done();
+    try {
+      const u = new SpeechSynthesisUtterance(text); u.lang = 'en-GB'; u.rate = 0.95; u.pitch = 1.15;
+      u.onend = u.onerror = done; speechSynthesis.speak(u); setTimeout(done, 6000);
+    } catch { done(); }
+  });
+}
+function hush() { sayToken++; try { voiceSrc?.stop(); } catch {} voiceSrc = null; try { speechSynthesis.cancel(); } catch {} }
+async function say(...keys) {
+  if (muted) return;
+  hush();
+  const token = sayToken;
+  for (const key of keys) {
+    const buf = await voiceGet(key);
+    if (token !== sayToken) return;
+    await (buf ? playVoice(buf) : speakText(lineText(key)));
+    if (token !== sayToken) return;
+  }
+}
+function haptic(ms) { try { if (!muted) navigator.vibrate?.(ms); } catch {} }
+const muteBtn = $('mute');
+function drawMute() {
+  muteBtn.innerHTML = muted
+    ? '<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="#2a2140"/><path d="M16 9l5 6M21 9l-5 6" stroke="#2a2140" stroke-width="2.2" stroke-linecap="round"/></svg>'
+    : '<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="#2a2140"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="#2a2140" stroke-width="2.2" stroke-linecap="round"/></svg>';
+}
+muteBtn.addEventListener('click', () => {
+  muted = !muted; if (!FORCE_MUTE) save('muted', muted); drawMute();
+  if (muted) { hush(); ac?.suspend(); } else { audio(); sfx.plop(); }
+});
+drawMute();
+
+/* ======== HUD: stickers, tackle, reel, bubbles ======== */
+const fishIcon = (key, got) => {
+  const sp = SPECIES[key], fill = got ? '#' + new THREE.Color(sp.side ?? 0x6b4a2e).getHexString() : 'rgba(31,53,80,.25)';
+  if (sp.junk) return `<svg viewBox="0 0 24 24"><path d="M7 3h6v9l7 2.5c1.5.6 2 1.6 2 3V20H4V4z" fill="${fill}"/></svg>`;
+  const sx = key === 'pike' ? 1.15 : key === 'carp' ? 0.95 : 1, sy = key === 'pike' ? 0.75 : key === 'carp' ? 1.2 : 1;
+  return `<svg viewBox="0 0 24 24"><g transform="translate(12 12) scale(${sx} ${sy}) translate(-12 -12)"><path d="M3 12c3-5 10-6.5 15-1.5l3.5-3v9l-3.5-3C13 18.5 6 17 3 12z" fill="${fill}"/>${got ? '<circle cx="7" cy="11" r="1.1" fill="#1f3550"/>' : ''}</g></svg>`;
+};
+function drawStickers(pop) {
+  $('stickers').innerHTML = ORDER.map((k) => `<div class="stk${book[k] ? ' got' : ''}${k === pop ? ' pop' : ''}">${fishIcon(k, !!book[k])}</div>`).join('');
+}
+drawStickers();
+const tkBtns = [...document.querySelectorAll('.tk')];
+function markTackle() { tkBtns.forEach((b) => b.classList.toggle('sel', b.dataset.t === (rig.next || rig.type))); }
+markTackle();
+tkBtns.forEach((b) => b.addEventListener('click', () => {
+  audio();
+  const t = b.dataset.t; if (rig.state === 'fight' || rig.state === 'land' || rig.state === 'card') return;
+  if (t === rig.type && !rig.next) return;
+  rig.next = t; markTackle(); idle = 0;
+  if (rig.state === 'wait') { if (rig.fish) letGo(rig.fish); rig.state = 'quickback'; rig.t = 0; rig.from.copy(rig.p); }
+  sfx.tick();
+}));
+
+const reelBtn = $('reel'), tensionArc = $('tension');
+// The reel is a crank: put a finger on it and wind round and round. The faster you wind, the faster the line
+// comes in; a press alone strikes a bite. Space winds at full speed on a computer.
+const crank = { on: false, id: null, a: 0, acc: 0, key: false, knob: -Math.PI / 2, clicks: 0 };
+const crankEl = $('crank');
+function crankAngle(e) { const r = reelBtn.getBoundingClientRect(); return [Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2)), Math.hypot(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2))]; }
+reelBtn.addEventListener('pointerdown', (e) => {
+  e.preventDefault(); audio(); idle = 0;
+  try { reelBtn.setPointerCapture(e.pointerId); } catch {}
+  strike();
+  crank.on = true; crank.id = e.pointerId; crank.a = crankAngle(e)[0]; crank.knob = crank.a;
+  reelBtn.classList.add('held');
+});
+reelBtn.addEventListener('pointermove', (e) => {
+  if (!crank.on || e.pointerId !== crank.id) return;
+  const [a, r] = crankAngle(e);
+  if (r < 10) return;   // too near the middle to tell which way round
+  let da = a - crank.a; if (da > Math.PI) da -= Math.PI * 2; if (da < -Math.PI) da += Math.PI * 2;
+  crank.acc += Math.abs(da); crank.a = a; crank.knob = a;
+});
+function crankUp() { crank.on = false; reelBtn.classList.remove('held'); }
+reelBtn.addEventListener('pointerup', crankUp);
+reelBtn.addEventListener('pointercancel', crankUp);
+reelBtn.addEventListener('lostpointercapture', crankUp);
+addEventListener('keydown', (e) => { if (e.code === 'Space' && !e.repeat && $('card').hidden && !reelBtn.hidden) { e.preventDefault(); audio(); strike(); crank.key = true; } });
+addEventListener('keyup', (e) => { if (e.code === 'Space') crank.key = false; });
+addEventListener('blur', () => { crankUp(); crank.key = false; });
+function updateCrank(dt) {
+  if (crank.key) { crank.acc += CRANK_FULL * dt; crank.knob += CRANK_FULL * dt; }
+  const wound = crank.acc; crank.acc = 0;
+  reelRate = damp(reelRate, clamp(wound / Math.max(dt, 1e-3) / CRANK_FULL, 0, 1), wound > 0 ? 10 : 5, dt);
+  if (reelRate < 0.02) reelRate = 0;
+  reeling = reelRate > 0.08 && !reelBtn.hidden;
+  crankIdle = reeling ? 0 : crankIdle + dt;
+  crankEl.setAttribute('transform', `rotate(${(crank.knob * 180 / Math.PI + 90).toFixed(1)} 50 50)`);
+  if (!reelBtn.hidden && (crank.clicks += wound) > 0.7) { crank.clicks = 0; sfx.tick(); }   // the ratchet clicks as you wind
+}
+
+function drawHud() {
+  const show = rig.state === 'wait' || rig.state === 'fight';
+  reelBtn.hidden = !show;
+  if (!show && crank.on) crankUp();
+  const f = rig.fish, fighting = rig.state === 'fight';
+  reelBtn.classList.toggle('pull', fighting && f.phase === 'pull');
+  reelBtn.classList.toggle('rest', fighting && f.phase !== 'pull');
+  tensionArc.style.strokeDashoffset = 289 * (1 - rig.tension);
+  tensionArc.style.stroke = rig.tension > 0.6 ? '#FFE14A' : '#fff';
+  tkBtns.forEach((b) => { b.disabled = fighting || rig.state === 'land'; });
+}
+
+const qEl = $('q'), bangEl = $('bang'), msgEl = $('msg'), hintEl = $('hint'), depthEl = $('depth');
+const _s = new V3();
+function toScreen(v) { _s.copy(v).project(camera); return [(_s.x + 1) / 2 * innerWidth, (1 - _s.y) / 2 * innerHeight]; }
+function place(el, v, dy = 0) { const [x, y] = toScreen(v); el.style.left = x + 'px'; el.style.top = (y + dy) + 'px'; }
+let msgT = 0; const msgAt = new V3();
+function showMsg(text, at) { msgEl.textContent = text; msgEl.hidden = false; msgAt.copy(at); msgT = 1.6; msgEl.style.animation = 'none'; void msgEl.offsetWidth; msgEl.style.animation = ''; }
+function updateBubbles(dt, T) {
+  const f = rig.fish;
+  const sniffing = f && rig.state === 'wait' && (f.state === 'sniff' || f.state === 'nibble') && !f.sp.junk;
+  qEl.hidden = !sniffing;
+  if (sniffing) place(qEl, _t.copy(f.mouth).add(_w.set(0, 0.35, 0)));
+  const bang = (rig.biteT > 0 && f && f.state === 'bite' && rig.state === 'wait') || rig.bangT > 0;
+  bangEl.hidden = !bang;
+  if (bang) place(bangEl, rig.bangT > 0 && f ? _t.copy(f.mouth).add(_w.set(0, 0.5, 0)) : rig.type === 'float' ? _t.copy(rig.p).add(_w.set(0, 0.75, 0)) : _t.copy(rod.tipPos).add(_w.set(0, 0.3, 0)));
+  const badge = rig.state === 'wait' && rig.type === 'float' && !rig.fish && rig.settled && !reeling && rig.worm > 0;
+  depthEl.hidden = !badge;
+  depthEl.classList.toggle('held', aim.worm);
+  if (badge) place(depthEl, rig.h, 22);
+  if (msgT > 0) { msgT -= dt; place(msgEl, msgAt, -20); if (msgT <= 0) msgEl.hidden = true; }
+  // the pointing hand: where to tap first, and the reel button for the lure
+  idle += dt;
+  let hint = null;
+  if (rig.state === 'ready' && idle > HINT_AFTER && $('card').hidden && !aim.on) hint = 'throw';
+  if (rig.state === 'wait' && rig.type === 'lure' && !reeling && rig.still > HINT_AFTER && !rig.fish) { hint = 'reel'; if (!saidLure) { saidLure = true; say('lure-tip'); } }
+  if (rig.state === 'wait' && rig.type !== 'lure' && rig.settled && !rig.fish && !saidWaiting) { saidWaiting = true; say('waiting'); }
+  if (rig.state === 'wait' && rig.type !== 'lure' && rig.worm <= 0 && !reeling) hint = 'reel';   // empty hook: reel in
+  if (rig.state === 'fight' && rig.fish.phase !== 'pull' && crankIdle > 1.5) hint = 'reel';   // a fish on: wind!
+  hintEl.hidden = !hint;
+  hintEl.classList.toggle('drag', hint === 'throw');
+  hintEl.classList.toggle('crank', hint === 'reel');
+  if (hint === 'throw') { place(hintEl, rig.p); if (!saidThrow) { saidThrow = true; say('throw'); } }
+  else if (hint === 'reel') { const r = reelBtn.getBoundingClientRect(); hintEl.style.left = (r.left + r.width / 2) + 'px'; hintEl.style.top = (r.top + r.height / 2) + 'px'; }
+}
+
+/* ======== throwing: pull back and let go ======== */
+// Angry Birds: grab the bait sitting in the slingshot and pull it back. It stays under your finger (out to the
+// band's reach), the band stretches from the two prongs into a triangle, and a dotted arc shows where it will
+// land. Let go and it flies the opposite way: further the more you pull, high if you pull down, flat if you pull
+// straight back. Under a bobber, grabbing the worm drags it up or down. Touching the water while the bait is out
+// reels it back to the slingshot.
+const aim = { on: false, id: null, fx: 0, fy: 0, power: 0, angle: 0.7, ok: false, x: 0, worm: false, pull: new V3(), step: 0, zoom: 1, cx: 0 };
+const ray = new THREE.Raycaster(), plane = new THREE.Plane(new V3(0, 0, 1), 0), _hit = new V3(), _ndc = new THREE.Vector2();
+function worldAt(cx, cy, out) {
+  ray.setFromCamera(_ndc.set(cx / innerWidth * 2 - 1, -(cy / innerHeight) * 2 + 1), camera);
+  return ray.ray.intersectPlane(plane, out);
+}
+canvas.addEventListener('pointerdown', (e) => {
+  audio(); idle = 0;
+  if (!$('card').hidden || aim.on) return;
+  if (strike()) return;
+  if (rig.state !== 'ready' && rig.state !== 'wait' && rig.state !== 'quickback') return;
+  if (rig.state === 'wait' && rig.type === 'float' && !rig.fish) {   // grab the worm to change its depth
+    const [sx, sy] = toScreen(rig.h);
+    if (Math.hypot(sx - e.clientX, sy - e.clientY) < 48) { capture(e); Object.assign(aim, { on: true, worm: true, id: e.pointerId }); return; }
+  }
+  if (rig.state === 'wait') { reelBack(); return; }
+  if (rig.state !== 'ready') return;
+  const [bx, by] = toScreen(rig.p);
+  if (Math.hypot(bx - e.clientX, by - e.clientY) > GRAB_PX) { idle = HINT_AFTER; return; }   // missed the bait: show where to grab
+  capture(e);
+  Object.assign(aim, { on: true, worm: false, id: e.pointerId, fx: e.clientX, fy: e.clientY, power: 0, ok: false, step: 0 }); aim.pull.set(0, 0, 0);
+});
+function capture(e) { try { canvas.setPointerCapture(e.pointerId); } catch {} }
+canvas.addEventListener('pointermove', (e) => {
+  if (!aim.on || e.pointerId !== aim.id) return;
+  if (aim.worm) {
+    if (worldAt(e.clientX, e.clientY, _hit)) rig.depth = clamp(_hit.y, bedY(rig.p.x) + 0.25, -0.45);
+    return;
+  }
+  aim.fx = e.clientX; aim.fy = e.clientY;
+});
+// Every frame while aiming: the bait goes where the finger is (as far as the band reaches, and not through the deck).
+function aimAt() {
+  if (!worldAt(aim.fx, aim.fy, _hit)) return;
+  aim.pull.subVectors(_hit, SLING); aim.pull.z = 0;
+  aim.pull.y = Math.max(aim.pull.y, DECK_Y + 0.2 - SLING.y);
+  const reach = clamp(Math.min(innerWidth, innerHeight) * SLING_REACH / (innerHeight / (view.h * view.zoom)), 1.8, 3.2);   // in world units
+  if (aim.pull.length() > reach) aim.pull.setLength(reach);
+  aim.power = aim.pull.length() / reach;
+  const lx = -aim.pull.x, ly = -aim.pull.y;   // it flies the other way
+  aim.angle = lx > 0 ? clamp(Math.atan2(ly, lx), -0.15, 1.35) : ly > 0 ? 1.35 : -0.15;
+  aim.ok = aim.power >= PULL_MIN;
+  const step = Math.floor(aim.power * 5);
+  if (step > aim.step) sfx.stretch(step);
+  aim.step = step;
+}
+function letFly(e) {
+  if (!aim.on || (e && e.pointerId !== aim.id)) return;
+  aim.on = false;
+  if (aim.worm) { aim.worm = false; return; }
+  if (aim.ok) { const v = aim.power * THROW_SPEED; if (rig.state === 'ready') sfx.twang(); throwCast(v * Math.cos(aim.angle), v * Math.sin(aim.angle)); }
+  else if (rig.state === 'ready') idle = HINT_AFTER;   // let go without pulling: show how to throw
+  aim.ok = false; aim.power = 0; aim.pull.set(0, 0, 0);
+}
+canvas.addEventListener('pointerup', letFly);
+canvas.addEventListener('pointercancel', letFly);
+
+// The aiming arc: dots marching along the path, and a ring where it will land.
+const aimDots = [], aimRing = new THREE.Group();
+{
+  const dm = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.95, depthTest: false });
+  const dg = new THREE.SphereGeometry(0.075, 10, 8);
+  for (let k = 0; k < 22; k++) { const m = addMesh(dg, dm); m.renderOrder = 20; m.visible = false; aimDots.push(m); }
+  const rg = new THREE.TorusGeometry(0.42, 0.06, 6, 40); rg.rotateX(Math.PI / 2);
+  const rm = new THREE.MeshBasicMaterial({ color: 0xffc93c, transparent: true, depthTest: false });
+  addMesh(rg, rm, 0, 0, 0, aimRing); addMesh(new THREE.CircleGeometry(0.1, 16).rotateX(-Math.PI / 2), rm, 0, 0, 0, aimRing);
+  aimRing.children.forEach((m) => { m.renderOrder = 21; });
+  aimRing.visible = false; aimRing.rotation.x = 0.9; scene.add(aimRing);
+}
+const band = { fill: null, back: ribbon(0x5e1c10), front: ribbon(0x8a2a1a), pouch: null, p: new V3(), d: new V3() };
+{
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(9), 3));
+  band.fill = addMesh(g, new THREE.MeshBasicMaterial({ color: 0x6bd36b, transparent: true, opacity: 0.35, side: THREE.DoubleSide, depthWrite: false }));
+  band.fill.frustumCulled = false; band.fill.renderOrder = 5;
+  band.pouch = addMesh(new THREE.SphereGeometry(0.11, 10, 8), lam(0x5a3420));
+  band.pouch.scale.set(0.55, 1, 1.5);
+}
+const SLACK = new THREE.Color(0x6bd36b), TAUT = new THREE.Color(0xffd23f), SNAP = new THREE.Color(0xff5a4a);
+function updateBand() {
+  // the pouch wraps the back of the bait while it sits there or is pulled; empty, it rests between the prongs
+  const loaded = rig.state === 'ready' || rig.state === 'card';
+  const pulling = loaded && aim.on && !aim.worm;
+  if (loaded) {
+    band.d.subVectors(SLING, rig.p); if (band.d.lengthSq() < 0.01) band.d.set(1, 0, 0);
+    band.p.copy(rig.p).addScaledVector(band.d.normalize(), -0.14);
+  } else band.p.set(SLING.x - 0.02, SLING.y + 0.05, 0);
+  band.pouch.position.copy(band.p); band.pouch.rotation.z = Math.atan2(band.d.y, band.d.x);
+  const w = 0.09 - 0.04 * (pulling ? aim.power : 0);   // the band gets thinner as it stretches
+  setLine(band.back, SLING_BACK, _q.set(band.p.x, band.p.y, -0.05), 0, w);
+  setLine(band.front, SLING_FRONT, _t.set(band.p.x, band.p.y, 0.08), 0, w);
+  band.fill.visible = pulling && aim.power > 0.05;
+  if (!band.fill.visible) return;
+  const pos = band.fill.geometry.attributes.position;
+  pos.setXYZ(0, SLING_BACK.x, SLING_BACK.y, -0.1); pos.setXYZ(1, SLING_FRONT.x, SLING_FRONT.y, -0.1); pos.setXYZ(2, band.p.x, band.p.y, -0.1); pos.needsUpdate = true;
+  const k = aim.power;
+  band.fill.material.color.copy(k < 0.6 ? SLACK : TAUT).lerp(k < 0.6 ? TAUT : SNAP, k < 0.6 ? k / 0.6 : (k - 0.6) / 0.4);
+}
+function updateAim(T) {
+  updateBand();
+  const show = aim.on && !aim.worm && aim.ok && rig.state === 'ready';
+  aimRing.visible = show;
+  if (!show) { for (const d of aimDots) d.visible = false; return; }
+  const v = aim.power * THROW_SPEED, th = throwPath(rig.p, v * Math.cos(aim.angle), v * Math.sin(aim.angle), _path);
+  aim.x = th.x;
+  const n = aimDots.length, shift = (T * 1.5) % 1;
+  aimDots.forEach((d, k) => {
+    const t = th.t * (k + shift) / n;
+    d.position.set(rig.p.x + th.vx * t, rig.p.y + th.vy * t - GRAVITY * t * t / 2, 0);
+    d.scale.setScalar(0.55 + 0.45 * (k + shift) / n);
+    d.visible = t > 0.06;
+  });
+  aimRing.position.set(th.x, wave(th.x, T) + 0.03, 0);
+  aimRing.scale.setScalar(1 + 0.12 * Math.sin(T * 8));
+}
+
+/* ======== the catch card ======== */
+let cardR = null, cardScene, cardCam, cardFish = null, cardOf = null;
+function openCard(f) {
+  rig.state = 'card'; cardOf = f; f.root.visible = false;
+  const first = !book[f.key], best = (book[f.key] || 0) < f.cm;
+  if (best) { book[f.key] = f.cm; save('book', book); }
+  $('cardName').textContent = f.sp.name;
+  $('cm').textContent = f.cm + ' cm';
+  $('new').hidden = !first;
+  $('card').hidden = false;
+  if (!cardR) {
+    cardR = new THREE.WebGLRenderer({ canvas: $('fishc'), antialias: true, alpha: true });
+    cardR.setPixelRatio(Math.min(devicePixelRatio, 2));
+    cardR.toneMapping = THREE.ACESFilmicToneMapping; cardR.toneMappingExposure = 1.25;
+    cardScene = new THREE.Scene();
+    cardScene.add(new THREE.HemisphereLight(0xffffff, 0x8899aa, 2)); const d = new THREE.DirectionalLight(0xffffff, 2); d.position.set(2, 3, 4); cardScene.add(d);
+    cardCam = new THREE.PerspectiveCamera(30, 2, 0.1, 50); cardCam.position.set(0, 0.3, 6); cardCam.lookAt(0, 0, 0);
+  }
+  const r = $('fishc').getBoundingClientRect(); cardR.setSize(r.width, r.height, false); cardCam.aspect = r.width / r.height; cardCam.updateProjectionMatrix();
+  if (cardFish) cardScene.remove(cardFish.root);
+  cardFish = buildFish(f.sp); cardScene.add(cardFish.root);
+  cardFish.root.scale.setScalar(Math.min(3.0 / f.sp.len, 1.6 / f.sp.h) * (f.sp.junk ? 0.8 : 1));
+  sfx.fanfare(); haptic(60);
+  if (f.sp.junk) say('boot');
+  else say(`fish-${f.key}`, `cm-${f.cm}`, ...(first ? ['new'] : best ? ['biggest'] : []));
+  drawStickers(first ? f.key : null);
+  kid.jump = 1;
+  window.tbxEvent?.('caught', { fish: f.key, cm: f.cm, tackle: rig.type });
+}
+$('letgo').addEventListener('click', () => {
+  const f = cardOf; if (!f) return;
+  $('card').hidden = true; cardOf = null;
+  if (!f.sp.junk) say('letgo');
+  rollSize(f);
+  f.root.visible = true; f.pos.set(LAND.x + 0.3, -0.5, 0); f.pitch.rotation.z = 0;
+  f.state = f.sp.junk ? 'lie' : 'leave'; f.face = 1; f.t = 2.2; f.cool = 12; f.v.set(0, 0, 0);
+  if (f.sp.junk) { f.pos.set(rand(1.5, 5.5), 0, 0.1); f.pos.y = bedY(f.pos.x) + 0.2; }
+  splash(LAND.x + 0.3, 12, 2.6); ripple(LAND.x + 0.3); sfx.splash();
+  rig.fish = null; rig.state = 'ready'; idle = 0;
+});
+
+// Soft sun shadows: solid things cast and catch them; water, sky and effects don't.
+scene.traverse((o) => {
+  if (o.isMesh && !o.userData.noShadow && (o.material.isMeshLambertMaterial || o.material.isMeshStandardMaterial)) { o.castShadow = true; o.receiveShadow = true; }
+});
+
+/* ======== main loop ======== */
+const clock = new THREE.Clock();
+let T = 0;
+function frame() {
+  tick(Math.min(clock.getDelta(), 0.05));
+  requestAnimationFrame(frame);
+}
+function tick(dt, draw = true) {
+  T += dt;
+  updateCrank(dt);
+  updateRig(dt, T);
+  for (const f of fishes) updateFish(f, dt, T);
+  if (rig.state === 'fight' || rig.state === 'land') updateRig(0, T);   // keep the hook on the fish's mouth after it moved
+
+  // rod: casting swing, then angle and bend from what's on the line
+  let ang = 1.0, bend = 0.06;   // held up, clear of the slingshot
+  const f = rig.fish;
+  const swing = rig.state === 'fly' && rig.t < 0.28;   // the forward flick of a throw
+  if (aim.on && !aim.worm && rig.state === 'ready') bend = 0.08 + aim.power * 0.25;
+  else if (swing) { ang = 0.25; bend = 0.35; }
+  else if (rig.state === 'fly') ang = 0.55;
+  else if (rig.state === 'wait') {
+    ang = 0.62; bend = 0.08 + rig.nib * (rig.type === 'bottom' ? 0.3 : 0.12) + reelRate * 0.12;
+    if (f && f.state === 'bite') bend += rig.type === 'bottom' ? 0.6 + 0.1 * Math.sin(T * 40) : 0.3;
+  } else if (rig.state === 'fight') {
+    ang = 1.0 + (f.phase === 'pull' ? 0.12 : 0);
+    const S = strength(f);   // a strong fish bends the rod further
+    bend = f.phase === 'pull' ? 0.6 + 0.15 * S + reelRate * 0.35 + 0.06 * Math.sin(T * 30) : 0.18 + reelRate * (0.15 + 0.15 * S);
+  } else if (rig.state === 'land') { ang = 1.25; bend = 0.45; }
+  rod.angle = damp(rod.angle, ang, swing ? 30 : aim.on ? 14 : 6, dt);
+  rod.bend = damp(rod.bend, bend, 14, dt);
+  kid.jump = Math.max(0, (kid.jump || 0) - dt * 1.2);
+  kid.position.y = DECK_Y + Math.abs(Math.sin(kid.jump * Math.PI * 3)) * 0.18 * kid.jump;
+  poseRod(dt);
+  placeRig(T, dt);
+
+  updateWater(T); updateWeeds(T); updateEffects(dt, T); updateAim(T); updateLife(T); updateCritters(dt);
+
+  // camera: keep the bait in view, and the child too when there's room
+  const bx = rig.state === 'fight' || rig.state === 'land' ? f.mouth.x : rig.state === 'wait' || rig.state === 'snapped' || rig.state === 'fly' ? rig.p.x : -2;
+  // while aiming and throwing, pull back so the child and the landing spot both fit (narrow phones)
+  // the aiming view, used whenever the bait is in the slingshot: the child and slingshot at the left and as much
+  // of the pond as fits (pulled back a little on narrow phones); it doesn't move when you grab, like Angry Birds
+  aim.zoom = clamp((CAST_X[1] + 9.2 + 1.2) / view.w, 1, 1.3);
+  const avw = view.w * aim.zoom, alim = 12.8 - avw / 2;
+  aim.cx = alim > 0 ? clamp(Math.max(SLING.x + avw * 0.2, -9.4 + avw / 2), -alim, alim) : 0;   // the slingshot 30% in: room to pull back
+  if (rig.state === 'ready' || rig.state === 'quickback' || (aim.on && !aim.worm)) {
+    view.zoom = damp(view.zoom, aim.zoom, 3, dt); view.cx = damp(view.cx, aim.cx, 3, dt);
+  } else {
+    view.zoom = damp(view.zoom, rig.state === 'fly' ? aim.zoom : 1, 2.5, dt);   // the camera follows the bait through the air
+    const vw = view.w * view.zoom;
+    let cx = rig.state === 'fly' ? bx : clamp((-6.8 + bx) / 2, bx - vw / 2 + 1.8, bx + vw / 2 - 1.8);   // in the air: keep the bait in the middle
+    const lim = 12.8 - vw / 2;
+    cx = lim > 0 ? clamp(cx, -lim, lim) : 0;
+    view.cx = damp(view.cx, cx, rig.state === 'fly' ? 6 : 2.2, dt);
+  }
+  camera.position.set(view.cx, view.cy + 4 * view.zoom, view.dist * view.zoom);
+  camera.lookAt(view.cx, view.cy, 0);
+  camera.updateMatrixWorld();
+
+  drawHud(); updateBubbles(dt, T);
+  if (!draw) return;
+  renderer.render(scene, camera);
+  if (cardOf && cardFish) {
+    cardFish.root.rotation.y = Math.sin(T * 0.8) * 0.6;
+    if (cardFish.tail) cardFish.tail.rotation.y = Math.sin(T * 9) * 0.5;
+    cardFish.root.position.y = Math.sin(T * 2) * 0.06;
+    cardR.render(cardScene, cardCam);
+  }
+}
+requestAnimationFrame(frame);
+
+// test hook for checking the game from the console
+window.__gf = { rig, fishes, camera, castTo, throwCast, aim, strike, hookFish, setReel: (on) => { crank.key = on; }, book,
+  step: (secs, dt = 1 / 30) => { const n = Math.round(secs / dt); for (let k = 0; k < n; k++) tick(dt, k === n - 1); } };   // runs the game without animation frames (a hidden tab)
+</script>
+<script>
+// Offline support: sw.js caches this page. Once the page has loaded, send it every file the page used (fonts,
+// three.js, sound clips) so those work offline too. Fails quietly where unsupported, e.g. on file://.
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').then(() => navigator.serviceWorker.ready).then((reg) => {
+    const send = () => reg.active && reg.active.postMessage({ cache: [location.href, ...performance.getEntriesByType('resource').map((r) => r.name)] });
+    send(); setTimeout(send, 5000); setTimeout(send, 20000);
+  }).catch(() => {});
+  // When sw.js says a newer version of this page has just been downloaded, reload once to show it: straight away if
+  // nobody has tapped or pressed a key yet, otherwise when the page comes back after 5+ minutes away, so a game in
+  // progress is never lost. A timestamp in sessionStorage stops a second reload within 30 s.
+  let started = false, newer = false, hiddenAt = 0;
+  addEventListener('pointerdown', () => { started = true; }, true);
+  addEventListener('keydown', () => { started = true; }, true);
+  const reload = () => {
+    const key = 'tbx-sw-reload:' + location.pathname;
+    try { if (Date.now() - (+sessionStorage.getItem(key) || 0) < 30000) return; sessionStorage.setItem(key, Date.now()); } catch { return; }
+    location.reload();
+  };
+  navigator.serviceWorker.addEventListener('message', (e) => { if (e.data && e.data.updated) { newer = true; if (!started) reload(); } });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) hiddenAt = Date.now();
+    else if (newer && hiddenAt && Date.now() - hiddenAt >= 5 * 60 * 1000) reload();
+  });
+}
+</script>
+</body>
+</html>

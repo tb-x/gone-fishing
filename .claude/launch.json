@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "fishing",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "5234"],
+      "port": 5234
+    }
+  ]
+}

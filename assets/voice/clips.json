@@ -1,0 +1,744 @@
+{
+ "throw": {
+  "text": "Grab the bait, pull it back, and let go!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 3.06,
+  "made": "2026-10-26"
+ },
+ "wind": {
+  "text": "Got it! Wind the reel round and round!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 3.15,
+  "made": "2026-10-26"
+ },
+ "soon-float": {
+  "text": "Too soon! Wait till the bobber goes right under.",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 3.47,
+  "made": "2026-10-26"
+ },
+ "soon-bell": {
+  "text": "Too soon! Wait for the bell.",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.26,
+  "made": "2026-10-26"
+ },
+ "late-float": {
+  "text": "Tap when the bobber goes under!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.29,
+  "made": "2026-10-26"
+ },
+ "late-bell": {
+  "text": "Tap when the bell rings!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.04,
+  "made": "2026-10-26"
+ },
+ "worm-ate": {
+  "text": "It ate your worm! Reel in for a new one.",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 3.18,
+  "made": "2026-10-26"
+ },
+ "worm-nibbled": {
+  "text": "It nibbled up your worm! Reel in for a new one.",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 3.48,
+  "made": "2026-10-26"
+ },
+ "snap-tip": {
+  "text": "Snap! The line broke. Stop winding when the fish pulls!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 4.45,
+  "made": "2026-10-26"
+ },
+ "snap": {
+  "text": "Snap!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 1.12,
+  "made": "2026-10-26"
+ },
+ "boot": {
+  "text": "An old boot! Ha ha!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.5,
+  "made": "2026-10-26"
+ },
+ "fish-roach": {
+  "text": "A roach!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 1.29,
+  "made": "2026-10-26"
+ },
+ "fish-perch": {
+  "text": "A perch!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 1.31,
+  "made": "2026-10-26"
+ },
+ "fish-carp": {
+  "text": "A carp!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 1.25,
+  "made": "2026-10-26"
+ },
+ "fish-pike": {
+  "text": "A pike!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 1.24,
+  "made": "2026-10-26"
+ },
+ "fish-catfish": {
+  "text": "A catfish!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 1.59,
+  "made": "2026-10-26"
+ },
+ "now": {
+  "text": "Now!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 1.16,
+  "made": "2026-10-26"
+ },
+ "new": {
+  "text": "A new one for your book!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.03,
+  "made": "2026-10-26"
+ },
+ "biggest": {
+  "text": "Your biggest one yet!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 1.97,
+  "made": "2026-10-26"
+ },
+ "letgo": {
+  "text": "Bye-bye, fish! Off you swim!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.35,
+  "made": "2026-10-26"
+ },
+ "lure-tip": {
+  "text": "Wind the reel to make the spinner swim!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.64,
+  "made": "2026-10-26"
+ },
+ "waiting": {
+  "text": "Shh. Wait for a fish to find it.",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 3.05,
+  "made": "2026-10-26"
+ },
+ "cm-12": {
+  "text": "Twelve centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 1.99,
+  "made": "2026-10-26"
+ },
+ "cm-13": {
+  "text": "Thirteen centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.18,
+  "made": "2026-10-26"
+ },
+ "cm-14": {
+  "text": "Fourteen centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.16,
+  "made": "2026-10-26"
+ },
+ "cm-15": {
+  "text": "Fifteen centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.12,
+  "made": "2026-10-26"
+ },
+ "cm-16": {
+  "text": "Sixteen centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.12,
+  "made": "2026-10-26"
+ },
+ "cm-17": {
+  "text": "Seventeen centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.22,
+  "made": "2026-10-26"
+ },
+ "cm-18": {
+  "text": "Eighteen centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.13,
+  "made": "2026-10-26"
+ },
+ "cm-19": {
+  "text": "Nineteen centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.17,
+  "made": "2026-10-26"
+ },
+ "cm-20": {
+  "text": "Twenty centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.11,
+  "made": "2026-10-26"
+ },
+ "cm-21": {
+  "text": "Twenty-one centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.3,
+  "made": "2026-10-26"
+ },
+ "cm-22": {
+  "text": "Twenty-two centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.32,
+  "made": "2026-10-26"
+ },
+ "cm-23": {
+  "text": "Twenty-three centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.34,
+  "made": "2026-10-26"
+ },
+ "cm-24": {
+  "text": "Twenty-four centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.31,
+  "made": "2026-10-26"
+ },
+ "cm-25": {
+  "text": "Twenty-five centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.34,
+  "made": "2026-10-26"
+ },
+ "cm-26": {
+  "text": "Twenty-six centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.31,
+  "made": "2026-10-26"
+ },
+ "cm-27": {
+  "text": "Twenty-seven centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.36,
+  "made": "2026-10-26"
+ },
+ "cm-28": {
+  "text": "Twenty-eight centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.28,
+  "made": "2026-10-26"
+ },
+ "cm-29": {
+  "text": "Twenty-nine centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.33,
+  "made": "2026-10-26"
+ },
+ "cm-30": {
+  "text": "Thirty centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.11,
+  "made": "2026-10-26"
+ },
+ "cm-31": {
+  "text": "Thirty-one centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.33,
+  "made": "2026-10-26"
+ },
+ "cm-32": {
+  "text": "Thirty-two centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.31,
+  "made": "2026-10-26"
+ },
+ "cm-33": {
+  "text": "Thirty-three centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.33,
+  "made": "2026-10-26"
+ },
+ "cm-34": {
+  "text": "Thirty-four centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.3,
+  "made": "2026-10-26"
+ },
+ "cm-35": {
+  "text": "Thirty-five centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.33,
+  "made": "2026-10-26"
+ },
+ "cm-36": {
+  "text": "Thirty-six centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.26,
+  "made": "2026-10-26"
+ },
+ "cm-37": {
+  "text": "Thirty-seven centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.38,
+  "made": "2026-10-26"
+ },
+ "cm-38": {
+  "text": "Thirty-eight centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.27,
+  "made": "2026-10-26"
+ },
+ "cm-39": {
+  "text": "Thirty-nine centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.32,
+  "made": "2026-10-26"
+ },
+ "cm-40": {
+  "text": "Forty centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.05,
+  "made": "2026-10-26"
+ },
+ "cm-41": {
+  "text": "Forty-one centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.28,
+  "made": "2026-10-26"
+ },
+ "cm-42": {
+  "text": "Forty-two centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.26,
+  "made": "2026-10-26"
+ },
+ "cm-43": {
+  "text": "Forty-three centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.32,
+  "made": "2026-10-26"
+ },
+ "cm-44": {
+  "text": "Forty-four centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.22,
+  "made": "2026-10-26"
+ },
+ "cm-45": {
+  "text": "Forty-five centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.32,
+  "made": "2026-10-26"
+ },
+ "cm-46": {
+  "text": "Forty-six centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.24,
+  "made": "2026-10-26"
+ },
+ "cm-47": {
+  "text": "Forty-seven centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.38,
+  "made": "2026-10-26"
+ },
+ "cm-48": {
+  "text": "Forty-eight centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.23,
+  "made": "2026-10-26"
+ },
+ "cm-49": {
+  "text": "Forty-nine centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.28,
+  "made": "2026-10-26"
+ },
+ "cm-50": {
+  "text": "Fifty centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.03,
+  "made": "2026-10-26"
+ },
+ "cm-51": {
+  "text": "Fifty-one centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.28,
+  "made": "2026-10-26"
+ },
+ "cm-52": {
+  "text": "Fifty-two centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.26,
+  "made": "2026-10-26"
+ },
+ "cm-53": {
+  "text": "Fifty-three centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.32,
+  "made": "2026-10-26"
+ },
+ "cm-54": {
+  "text": "Fifty-four centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.26,
+  "made": "2026-10-26"
+ },
+ "cm-55": {
+  "text": "Fifty-five centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.33,
+  "made": "2026-10-26"
+ },
+ "cm-56": {
+  "text": "Fifty-six centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.24,
+  "made": "2026-10-26"
+ },
+ "cm-57": {
+  "text": "Fifty-seven centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.41,
+  "made": "2026-10-26"
+ },
+ "cm-58": {
+  "text": "Fifty-eight centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.19,
+  "made": "2026-10-26"
+ },
+ "cm-59": {
+  "text": "Fifty-nine centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.29,
+  "made": "2026-10-26"
+ },
+ "cm-60": {
+  "text": "Sixty centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.06,
+  "made": "2026-10-26"
+ },
+ "cm-61": {
+  "text": "Sixty-one centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.26,
+  "made": "2026-10-26"
+ },
+ "cm-62": {
+  "text": "Sixty-two centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.28,
+  "made": "2026-10-26"
+ },
+ "cm-63": {
+  "text": "Sixty-three centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.31,
+  "made": "2026-10-26"
+ },
+ "cm-64": {
+  "text": "Sixty-four centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.26,
+  "made": "2026-10-26"
+ },
+ "cm-65": {
+  "text": "Sixty-five centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.28,
+  "made": "2026-10-26"
+ },
+ "cm-66": {
+  "text": "Sixty-six centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.24,
+  "made": "2026-10-26"
+ },
+ "cm-67": {
+  "text": "Sixty-seven centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.38,
+  "made": "2026-10-26"
+ },
+ "cm-68": {
+  "text": "Sixty-eight centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.24,
+  "made": "2026-10-26"
+ },
+ "cm-69": {
+  "text": "Sixty-nine centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.28,
+  "made": "2026-10-26"
+ },
+ "cm-70": {
+  "text": "Seventy centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.14,
+  "made": "2026-10-26"
+ },
+ "cm-71": {
+  "text": "Seventy-one centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.4,
+  "made": "2026-10-26"
+ },
+ "cm-72": {
+  "text": "Seventy-two centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.36,
+  "made": "2026-10-26"
+ },
+ "cm-73": {
+  "text": "Seventy-three centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.44,
+  "made": "2026-10-26"
+ },
+ "cm-74": {
+  "text": "Seventy-four centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.38,
+  "made": "2026-10-26"
+ },
+ "cm-75": {
+  "text": "Seventy-five centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.46,
+  "made": "2026-10-26"
+ },
+ "cm-76": {
+  "text": "Seventy-six centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.32,
+  "made": "2026-10-26"
+ },
+ "cm-77": {
+  "text": "Seventy-seven centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.5,
+  "made": "2026-10-26"
+ },
+ "cm-78": {
+  "text": "Seventy-eight centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.29,
+  "made": "2026-10-26"
+ },
+ "cm-79": {
+  "text": "Seventy-nine centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.4,
+  "made": "2026-10-26"
+ },
+ "cm-80": {
+  "text": "Eighty centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.06,
+  "made": "2026-10-26"
+ },
+ "cm-81": {
+  "text": "Eighty-one centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.28,
+  "made": "2026-10-26"
+ },
+ "cm-82": {
+  "text": "Eighty-two centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.21,
+  "made": "2026-10-26"
+ },
+ "cm-83": {
+  "text": "Eighty-three centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.28,
+  "made": "2026-10-26"
+ },
+ "cm-84": {
+  "text": "Eighty-four centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.2,
+  "made": "2026-10-26"
+ },
+ "cm-85": {
+  "text": "Eighty-five centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.29,
+  "made": "2026-10-26"
+ },
+ "cm-86": {
+  "text": "Eighty-six centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.2,
+  "made": "2026-10-26"
+ },
+ "cm-87": {
+  "text": "Eighty-seven centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.34,
+  "made": "2026-10-26"
+ },
+ "cm-88": {
+  "text": "Eighty-eight centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.19,
+  "made": "2026-10-26"
+ },
+ "cm-89": {
+  "text": "Eighty-nine centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.2,
+  "made": "2026-10-26"
+ },
+ "cm-90": {
+  "text": "Ninety centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.1,
+  "made": "2026-10-26"
+ },
+ "cm-91": {
+  "text": "Ninety-one centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.33,
+  "made": "2026-10-26"
+ },
+ "cm-92": {
+  "text": "Ninety-two centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.32,
+  "made": "2026-10-26"
+ },
+ "cm-93": {
+  "text": "Ninety-three centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.34,
+  "made": "2026-10-26"
+ },
+ "cm-94": {
+  "text": "Ninety-four centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.28,
+  "made": "2026-10-26"
+ },
+ "cm-95": {
+  "text": "Ninety-five centimetres!",
+  "voice": "bf_emma speed 0.9",
+  "tool": "Kokoro-82M v1.0 (kokoro-onnx)",
+  "dur": 2.34,
+  "made": "2026-10-26"
+ }
+}
